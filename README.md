@@ -72,7 +72,9 @@
 ### Database
 - MySQL 8
 
-- PlanetScale is used as the database platform for this project 
+- PlanetScale is used as the database platform for this project, access token is shared in the team chat (`config.json`)
+
+    - [PlanetScale](https://planetscale.com/)
 
 - TODOs:
 
