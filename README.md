@@ -7,60 +7,6 @@
 -   [Database](#database)
 -   [Development](#development)
 
-### API Documentation
-
--   [x] `GET /api/hello` - Hello world
-    - Resp:
-        ```json
-        {
-            "message": "Hello world!"
-        }
-        ```
--   [ ] `GET /api/locker` - Get all lockers
-    - Resp:
-        ```json
-        {
-            "lockers": [
-                {
-                    "id": "string",
-                    "name": "string",
-                    "description": "string",
-                    "location": "string",
-                    "status": "string"
-                }
-            ]
-        }
-        ```
--   [ ] `GET /api/locker/:id` - Get a locker by id
-    - Body:
-        ```json
-        {
-            "id": "string"
-        }
-        ```
--   [ ] `POST /api/locker` - Create a new locker
-    - Body:
-        ```json
-        {
-            "id": "string",
-            "name": "string",
-            "description": "string",
-            "location": "string",
-            "status": "string"
-        }
-        ```
--   [ ] `PUT /api/locker/:id` - Update a locker by id
-    - Body:
-        ```json
-        {
-            "id": "string",
-            "name": "string",
-            "description": "string",
-            "location": "string",
-            "status": "string"
-        }
-        ```
-
 ### Installation
 -   Go 1.19 or higher is recommended
 
@@ -82,6 +28,98 @@
 
     -   [ ] Create database
 
+### API Documentation
+
+-   [x] `GET /api/hello` - Hello world
+    - Resp:
+        ```json
+        {
+            "message": "Hello world!"
+        }
+        ```
+-   [ ] `POST /api/login` - Login
+    - Body:
+        ```json
+        {
+            "username": "string",
+            "password": "string"
+        }
+        ```
+-   [ ] `POST /api/register` - Register
+    - Body:
+        ```json
+        {
+            "username": "string",
+            "password": "string"
+        }
+        ```
+    - Resp:
+        ```json
+        {   
+            "success": true,
+            "token": "string"
+        }
+        ```
+        ```json
+        {   
+            "success": false,
+            "message": "string"
+        }
+        ```
+    
+-   [ ] `GET /api/locker` - Get all lockers
+    - Body:
+        ```json
+        {
+            "token": "string"
+        }
+        ```
+    - Resp:
+        ```json
+        {
+            "lockers": [
+                {
+                    "id": "string",
+                    "name": "string",
+                    "description": "string",
+                    "location": "string",
+                    "status": "string"
+                }
+            ]
+        }
+        ```
+-   [ ] `GET /api/locker/:id` - Get a locker by id
+    - Body:
+        ```json
+        {
+            "id": "string",
+            "token": "string"
+        }
+        ```
+-   [ ] `POST /api/locker` - Create a new locker
+    - Body:
+        ```json
+        {
+            "id": "string",
+            "name": "string",
+            "description": "string",
+            "location": "string",
+            "status": "string",
+            "token": "string"
+        }
+        ```
+-   [ ] `PUT /api/locker/:id` - Update a locker by id
+    - Body:
+        ```json
+        {
+            "id": "string",
+            "name": "string",
+            "description": "string",
+            "location": "string",
+            "status": "string",
+            "token": "string"
+        }
+        ```
 
 ### Development
 -   Create a new fork and work on your own changes
