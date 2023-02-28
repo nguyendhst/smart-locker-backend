@@ -34,5 +34,8 @@ func InitApiHandlers(e *echo.Echo) error {
 }
 
 func helloWorld(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
+	// json "message":"Hello World!"
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Hello World!",
+	})
 }
