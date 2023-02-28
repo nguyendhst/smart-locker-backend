@@ -84,7 +84,7 @@
 
 
 ### Development
--   Create a new branch for your feature
+-   Create a new fork and work on your own changes
 
 -   Create an issue for any feature you want to work on
 
