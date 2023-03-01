@@ -16,11 +16,18 @@
 
 
 ### Database
-- MySQL 8
+-   MySQL 8
 
-- PlanetScale is used as the database platform for this project, access token is shared in the team chat (`config.json`)
+-   PlanetScale is used as the database platform for this project, access token is shared in the team chat (`config.json`)
 
-    - [PlanetScale](https://planetscale.com/)
+    -   [PlanetScale](https://planetscale.com/)
+
+-   Tools used:
+    -   `sqlc` - Generate Go code from SQL queries
+    -   `dbdiagram.io` - Generate database schema diagram
+    -   `go-migrate` - Database migration tool
+
+-   [Database Schema](https://dbdiagram.io/d/635783f4fa2755667d6744c7)
 
 - TODOs:
 
