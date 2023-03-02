@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS `lockers`;
+DROP TABLE IF EXISTS `locker_user`;
+DROP TABLE IF EXISTS `users`;

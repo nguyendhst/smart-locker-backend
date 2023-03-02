@@ -36,6 +36,12 @@
 
     -   [x] Create database
 
+### Development
+-   Create a new fork and work on your own changes
+
+-   Create an issue for any feature you want to work on
+
+
 ### API Documentation
 
 -   [x] `GET /api/hello` - Hello world
@@ -45,7 +51,7 @@
             "message": "Hello world!"
         }
         ```
--   [ ] `POST /api/login` - Login
+-   [ ] `POST /api/users/login` - Login
     - Body:
         ```json
         {
@@ -53,7 +59,7 @@
             "password": "string"
         }
         ```
--   [ ] `POST /api/register` - Register
+-   [ ] `POST /api/users/register` - Register
     - Body:
         ```json
         {
@@ -128,11 +134,6 @@
             "token": "string"
         }
         ```
-
-### Development
--   Create a new fork and work on your own changes
-
--   Create an issue for any feature you want to work on
 
 
 <blockquote>

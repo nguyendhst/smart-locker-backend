@@ -2,20 +2,27 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	config "smart-locker/backend/config"
-
-	echo "github.com/labstack/echo/v4"
-	_ "github.com/planetscale/planetscale-go/planetscale"
+	"smart-locker/backend/api"
 )
 
 func main() {
-	// Bootstrap the application and start the server.
-	e := echo.New()
-	err := config.InitConfig(e)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// FIXME - move this to its own file
-	log.Fatal(e.Start(":" + config.PORT))
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		if err := api.StartServer(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for a signal to quit. Can be a SIGINT or SIGTERM.
+	<-sig
+
+	log.Println("Shutting down...")
+
 }
