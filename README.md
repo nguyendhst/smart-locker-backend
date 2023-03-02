@@ -31,11 +31,10 @@
 
 - TODOs:
 
-    -   [ ] Define database schema
-        -   WIP: [Database Schema](https://dbdiagram.io/d/635783f4fa2755667d6744c7)
+    -   [x] Define database schema
         -   Cloud-based databases do not support foreign keys constraint, so we need to manually check the foreign key constraint in the application layer.
 
-    -   [ ] Create database
+    -   [x] Create database
 
 ### API Documentation
 
