@@ -23,6 +23,10 @@ type Config struct {
 	DSN string `json:"dsn"`
 	// The planetscale database
 	PScaleDB string `json:"planetscale_db"`
+	// Adafruit IO username
+	AdafruitUsername string `json:"adafruit_username"`
+	// Adafruit IO key
+	AdafruitKey string `json:"adafruit_key"`
 }
 
 func InitConfig() (*Config, error) {

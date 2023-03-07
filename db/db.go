@@ -17,7 +17,7 @@ type (
 		ExecRegisterTx(context.Context, RegisterParams) (RegisterResult, error)
 	}
 
-	// Tx represents transaction which implements the DB querier interface.
+	// Tx represents a transaction which implements the DB querier interface.
 	Tx struct {
 		*sqlc.Queries
 		db *sql.DB

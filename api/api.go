@@ -8,6 +8,8 @@ import (
 	"smart-locker/backend/db"
 
 	"github.com/labstack/echo/v4"
+
+	ada "github.com/adafruit/io-client-go/v2"
 )
 
 type ()
@@ -20,11 +22,14 @@ var (
 )
 
 type Server struct {
-	Router *echo.Echo
-	Store  db.DB
-	Config *config.Config
+	Router         *echo.Echo
+	Store          db.DB
+	Config         *config.Config
+	AdafruitClient *ada.Client
 }
 
+// NewServer loads the configuration and initializes the database connection.
+// It returns a new server instance.
 func NewServer() (*Server, error) {
 
 	var config *config.Config
@@ -34,6 +39,8 @@ func NewServer() (*Server, error) {
 	if config, err = _initConfig(); err != nil {
 		return nil, err
 	} else if db, err = _initDB(config); err != nil {
+		return nil, err
+	} else if _, err = _initAdafruit(config); err != nil {
 		return nil, err
 	}
 
@@ -89,6 +96,15 @@ func _initApi(s *Server, e *echo.Echo) error {
 		}
 	}
 	return nil
+}
+
+func _initAdafruit(config *config.Config) (*ada.Client, error) {
+	c := ada.NewClient(config.AdafruitUsername, config.AdafruitKey)
+	// test ping, get all feeds
+	if _, _, err := c.Feed.All(); err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 func _helloWorld(c echo.Context) error {
