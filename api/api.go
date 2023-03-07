@@ -2,6 +2,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"smart-locker/backend/config"
@@ -9,7 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	ada "github.com/adafruit/io-client-go/v2"
+	swagger "smart-locker/backend/adafruit-go-client-v2"
 )
 
 type ()
@@ -25,7 +26,7 @@ type Server struct {
 	Router         *echo.Echo
 	Store          db.DB
 	Config         *config.Config
-	AdafruitClient *ada.Client
+	AdafruitClient *swagger.APIClient
 }
 
 // NewServer loads the configuration and initializes the database connection.
@@ -98,10 +99,23 @@ func _initApi(s *Server, e *echo.Echo) error {
 	return nil
 }
 
-func _initAdafruit(config *config.Config) (*ada.Client, error) {
-	c := ada.NewClient(config.AdafruitUsername, config.AdafruitKey)
+// func _initAdafruit(config *config.Config) (*ada.Client, error) {
+// 	c := ada.NewClient(config.AdafruitUsername, config.AdafruitKey)
+// 	// test ping, get all feeds
+// 	if _, _, err := c.Feed.All(); err != nil {
+// 		return nil, err
+// 	}
+// 	return c, nil
+// }
+
+func _initAdafruit(config *config.Config) (*swagger.APIClient, error) {
+	cfg := swagger.NewConfiguration()
+	// add X-AIO-Key to header
+	cfg.AddDefaultHeader("X-AIO-Key", config.AdafruitKey)
+	c := swagger.NewAPIClient(cfg)
 	// test ping, get all feeds
-	if _, _, err := c.Feed.All(); err != nil {
+	_, _, err := c.FeedsApi.AllFeeds(context.Background(), config.AdafruitUsername)
+	if err != nil {
 		return nil, err
 	}
 	return c, nil
