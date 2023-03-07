@@ -1,0 +1,3 @@
+[submodule "adafruit-go-client-v2"]
+	path = adafruit-go-client-v2
+	url = https://github.com/nguyendhst/adafruit-go-client-v2.git
