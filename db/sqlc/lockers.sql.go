@@ -11,28 +11,40 @@ import (
 )
 
 const createLocker = `-- name: CreateLocker :execresult
-INSERT INTO lockers (locker_number, location, status, nfc_sig) VALUES ($1, $2, $3, $4)
+INSERT INTO lockers (locker_number, location, status, nfc_sig) VALUES (?, ?, ?, ?)
 `
 
-func (q *Queries) CreateLocker(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.createLockerStmt, createLocker)
+type CreateLockerParams struct {
+	LockerNumber int32         `json:"lockerNumber"`
+	Location     string        `json:"location"`
+	Status       LockersStatus `json:"status"`
+	NfcSig       string        `json:"nfcSig"`
+}
+
+func (q *Queries) CreateLocker(ctx context.Context, arg CreateLockerParams) (sql.Result, error) {
+	return q.exec(ctx, q.createLockerStmt, createLocker,
+		arg.LockerNumber,
+		arg.Location,
+		arg.Status,
+		arg.NfcSig,
+	)
 }
 
 const deleteLocker = `-- name: DeleteLocker :exec
-DELETE FROM lockers WHERE id = $1
+DELETE FROM lockers WHERE id = ?
 `
 
-func (q *Queries) DeleteLocker(ctx context.Context) error {
-	_, err := q.exec(ctx, q.deleteLockerStmt, deleteLocker)
+func (q *Queries) DeleteLocker(ctx context.Context, id int32) error {
+	_, err := q.exec(ctx, q.deleteLockerStmt, deleteLocker, id)
 	return err
 }
 
 const getLocker = `-- name: GetLocker :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE id = $1
+SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE id = ?
 `
 
-func (q *Queries) GetLocker(ctx context.Context) (Locker, error) {
-	row := q.queryRow(ctx, q.getLockerStmt, getLocker)
+func (q *Queries) GetLocker(ctx context.Context, id int32) (Locker, error) {
+	row := q.queryRow(ctx, q.getLockerStmt, getLocker, id)
 	var i Locker
 	err := row.Scan(
 		&i.ID,
@@ -47,11 +59,11 @@ func (q *Queries) GetLocker(ctx context.Context) (Locker, error) {
 }
 
 const getLockerByLockerNumber = `-- name: GetLockerByLockerNumber :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = $1
+SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = ?
 `
 
-func (q *Queries) GetLockerByLockerNumber(ctx context.Context) (Locker, error) {
-	row := q.queryRow(ctx, q.getLockerByLockerNumberStmt, getLockerByLockerNumber)
+func (q *Queries) GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error) {
+	row := q.queryRow(ctx, q.getLockerByLockerNumberStmt, getLockerByLockerNumber, lockerNumber)
 	var i Locker
 	err := row.Scan(
 		&i.ID,
@@ -66,11 +78,16 @@ func (q *Queries) GetLockerByLockerNumber(ctx context.Context) (Locker, error) {
 }
 
 const getLockerByLockerNumberAndLocation = `-- name: GetLockerByLockerNumberAndLocation :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = $1 AND location = $2
+SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = ? AND location = ?
 `
 
-func (q *Queries) GetLockerByLockerNumberAndLocation(ctx context.Context) (Locker, error) {
-	row := q.queryRow(ctx, q.getLockerByLockerNumberAndLocationStmt, getLockerByLockerNumberAndLocation)
+type GetLockerByLockerNumberAndLocationParams struct {
+	LockerNumber int32  `json:"lockerNumber"`
+	Location     string `json:"location"`
+}
+
+func (q *Queries) GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error) {
+	row := q.queryRow(ctx, q.getLockerByLockerNumberAndLocationStmt, getLockerByLockerNumberAndLocation, arg.LockerNumber, arg.Location)
 	var i Locker
 	err := row.Scan(
 		&i.ID,
@@ -85,11 +102,11 @@ func (q *Queries) GetLockerByLockerNumberAndLocation(ctx context.Context) (Locke
 }
 
 const getLockerByNfcSig = `-- name: GetLockerByNfcSig :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE nfc_sig = $1
+SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE nfc_sig = ?
 `
 
-func (q *Queries) GetLockerByNfcSig(ctx context.Context) (Locker, error) {
-	row := q.queryRow(ctx, q.getLockerByNfcSigStmt, getLockerByNfcSig)
+func (q *Queries) GetLockerByNfcSig(ctx context.Context, nfcSig string) (Locker, error) {
+	row := q.queryRow(ctx, q.getLockerByNfcSigStmt, getLockerByNfcSig, nfcSig)
 	var i Locker
 	err := row.Scan(
 		&i.ID,
@@ -104,25 +121,49 @@ func (q *Queries) GetLockerByNfcSig(ctx context.Context) (Locker, error) {
 }
 
 const updateLocker = `-- name: UpdateLocker :execresult
-UPDATE lockers SET locker_number = $1, location = $2, status = $3, nfc_sig = $4 WHERE id = $5
+UPDATE lockers SET locker_number = ?, location = ?, status = ?, nfc_sig = ? WHERE id = ?
 `
 
-func (q *Queries) UpdateLocker(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.updateLockerStmt, updateLocker)
+type UpdateLockerParams struct {
+	LockerNumber int32         `json:"lockerNumber"`
+	Location     string        `json:"location"`
+	Status       LockersStatus `json:"status"`
+	NfcSig       string        `json:"nfcSig"`
+	ID           int32         `json:"id"`
+}
+
+func (q *Queries) UpdateLocker(ctx context.Context, arg UpdateLockerParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateLockerStmt, updateLocker,
+		arg.LockerNumber,
+		arg.Location,
+		arg.Status,
+		arg.NfcSig,
+		arg.ID,
+	)
 }
 
 const updateLockerNfcSig = `-- name: UpdateLockerNfcSig :execresult
-UPDATE lockers SET nfc_sig = $1 WHERE id = $2
+UPDATE lockers SET nfc_sig = ? WHERE id = ?
 `
 
-func (q *Queries) UpdateLockerNfcSig(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.updateLockerNfcSigStmt, updateLockerNfcSig)
+type UpdateLockerNfcSigParams struct {
+	NfcSig string `json:"nfcSig"`
+	ID     int32  `json:"id"`
+}
+
+func (q *Queries) UpdateLockerNfcSig(ctx context.Context, arg UpdateLockerNfcSigParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateLockerNfcSigStmt, updateLockerNfcSig, arg.NfcSig, arg.ID)
 }
 
 const updateLockerStatus = `-- name: UpdateLockerStatus :execresult
-UPDATE lockers SET status = $1 WHERE id = $2
+UPDATE lockers SET status = ? WHERE id = ?
 `
 
-func (q *Queries) UpdateLockerStatus(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.updateLockerStatusStmt, updateLockerStatus)
+type UpdateLockerStatusParams struct {
+	Status LockersStatus `json:"status"`
+	ID     int32         `json:"id"`
+}
+
+func (q *Queries) UpdateLockerStatus(ctx context.Context, arg UpdateLockerStatusParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateLockerStatusStmt, updateLockerStatus, arg.Status, arg.ID)
 }

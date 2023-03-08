@@ -13,8 +13,6 @@ import (
 	swagger "smart-locker/backend/adafruit-go-client-v2"
 )
 
-type ()
-
 var (
 	apiEndpoints = []string{
 		"api/hello",
@@ -36,6 +34,8 @@ func NewServer() (*Server, error) {
 	var config *config.Config
 	var db db.DB
 	var err error
+
+	// jwt
 
 	if config, err = _initConfig(); err != nil {
 		return nil, err

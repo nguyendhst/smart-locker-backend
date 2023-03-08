@@ -11,28 +11,33 @@ import (
 )
 
 const createLockerUser = `-- name: CreateLockerUser :execresult
-INSERT INTO locker_user (user_id, locker_id) VALUES ($1, $2)
+INSERT INTO locker_user (user_id, locker_id) VALUES (?, ?)
 `
 
-func (q *Queries) CreateLockerUser(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.createLockerUserStmt, createLockerUser)
+type CreateLockerUserParams struct {
+	UserID   int32 `json:"userID"`
+	LockerID int32 `json:"lockerID"`
+}
+
+func (q *Queries) CreateLockerUser(ctx context.Context, arg CreateLockerUserParams) (sql.Result, error) {
+	return q.exec(ctx, q.createLockerUserStmt, createLockerUser, arg.UserID, arg.LockerID)
 }
 
 const deleteLockerUser = `-- name: DeleteLockerUser :exec
-DELETE FROM locker_user WHERE id = $1
+DELETE FROM locker_user WHERE id = ?
 `
 
-func (q *Queries) DeleteLockerUser(ctx context.Context) error {
-	_, err := q.exec(ctx, q.deleteLockerUserStmt, deleteLockerUser)
+func (q *Queries) DeleteLockerUser(ctx context.Context, id int32) error {
+	_, err := q.exec(ctx, q.deleteLockerUserStmt, deleteLockerUser, id)
 	return err
 }
 
 const getLockerUser = `-- name: GetLockerUser :one
-SELECT id, user_id, locker_id, created_at, last_modified FROM locker_user WHERE id = $1
+SELECT id, user_id, locker_id, created_at, last_modified FROM locker_user WHERE id = ?
 `
 
-func (q *Queries) GetLockerUser(ctx context.Context) (LockerUser, error) {
-	row := q.queryRow(ctx, q.getLockerUserStmt, getLockerUser)
+func (q *Queries) GetLockerUser(ctx context.Context, id int32) (LockerUser, error) {
+	row := q.queryRow(ctx, q.getLockerUserStmt, getLockerUser, id)
 	var i LockerUser
 	err := row.Scan(
 		&i.ID,
@@ -45,9 +50,15 @@ func (q *Queries) GetLockerUser(ctx context.Context) (LockerUser, error) {
 }
 
 const updateLockerUser = `-- name: UpdateLockerUser :execresult
-UPDATE locker_user SET user_id = $1, locker_id = $2 WHERE id = $3
+UPDATE locker_user SET user_id = ?, locker_id = ? WHERE id = ?
 `
 
-func (q *Queries) UpdateLockerUser(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.updateLockerUserStmt, updateLockerUser)
+type UpdateLockerUserParams struct {
+	UserID   int32 `json:"userID"`
+	LockerID int32 `json:"lockerID"`
+	ID       int32 `json:"id"`
+}
+
+func (q *Queries) UpdateLockerUser(ctx context.Context, arg UpdateLockerUserParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateLockerUserStmt, updateLockerUser, arg.UserID, arg.LockerID, arg.ID)
 }

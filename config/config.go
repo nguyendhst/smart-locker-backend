@@ -27,6 +27,8 @@ type Config struct {
 	AdafruitUsername string `json:"adafruit_username"`
 	// Adafruit IO key
 	AdafruitKey string `json:"adafruit_key"`
+	// JWT secret
+	JWTSecret string `json:"jwt_secret"`
 }
 
 func InitConfig() (*Config, error) {

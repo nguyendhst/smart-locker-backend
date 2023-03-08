@@ -1,11 +1,11 @@
 -- name: GetUser :one
-SELECT * FROM users WHERE id = $1;
+SELECT * FROM users WHERE id = ?;
 
 -- name: CreateUser :execresult
-INSERT INTO users (name, password_hashed, email) VALUES ($1, $2, $3);
+INSERT INTO users (name, password_hashed, email) VALUES (?, ?, ?);
 
 -- name: UpdateUser :execresult
-UPDATE users SET name = $1, password_hashed = $2, email = $3 WHERE id = $4;
+UPDATE users SET name = ?, password_hashed = ?, email = ? WHERE id = ?;
 
 -- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1;
+DELETE FROM users WHERE id = ?;

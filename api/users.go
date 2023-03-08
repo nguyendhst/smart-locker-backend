@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"smart-locker/backend/db"
+	"smart-locker/backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,8 +17,7 @@ type (
 
 	// RegisterResponse is the response body for the register user query.
 	RegisterResponse struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Token string `json:"token"`
 	}
 )
 
@@ -27,11 +27,15 @@ func (s *Server) registerUser(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
 	// Execute the register user query.
 	params := db.RegisterParams{
-		Email:    req.Email,
-		Password: req.Password,
+		Email:          req.Email,
+		PasswordHashed: hashedPassword,
 	}
 	result, err := s.Store.ExecRegisterTx(c.Request().Context(), params)
 	if err != nil {
@@ -40,8 +44,7 @@ func (s *Server) registerUser(c echo.Context) error {
 
 	// Return the response.
 	res := RegisterResponse{
-		Email:    result.Email,
-		Password: result.Password,
+		Token: result.Token,
 	}
 
 	return c.JSON(http.StatusOK, res)

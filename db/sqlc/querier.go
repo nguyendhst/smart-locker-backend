@@ -10,23 +10,23 @@ import (
 )
 
 type Querier interface {
-	CreateLocker(ctx context.Context) (sql.Result, error)
-	CreateLockerUser(ctx context.Context) (sql.Result, error)
-	CreateUser(ctx context.Context) (sql.Result, error)
-	DeleteLocker(ctx context.Context) error
-	DeleteLockerUser(ctx context.Context) error
-	DeleteUser(ctx context.Context) error
-	GetLocker(ctx context.Context) (Locker, error)
-	GetLockerByLockerNumber(ctx context.Context) (Locker, error)
-	GetLockerByLockerNumberAndLocation(ctx context.Context) (Locker, error)
-	GetLockerByNfcSig(ctx context.Context) (Locker, error)
-	GetLockerUser(ctx context.Context) (LockerUser, error)
-	GetUser(ctx context.Context) (User, error)
-	UpdateLocker(ctx context.Context) (sql.Result, error)
-	UpdateLockerNfcSig(ctx context.Context) (sql.Result, error)
-	UpdateLockerStatus(ctx context.Context) (sql.Result, error)
-	UpdateLockerUser(ctx context.Context) (sql.Result, error)
-	UpdateUser(ctx context.Context) (sql.Result, error)
+	CreateLocker(ctx context.Context, arg CreateLockerParams) (sql.Result, error)
+	CreateLockerUser(ctx context.Context, arg CreateLockerUserParams) (sql.Result, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
+	DeleteLocker(ctx context.Context, id int32) error
+	DeleteLockerUser(ctx context.Context, id int32) error
+	DeleteUser(ctx context.Context, id int32) error
+	GetLocker(ctx context.Context, id int32) (Locker, error)
+	GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error)
+	GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error)
+	GetLockerByNfcSig(ctx context.Context, nfcSig string) (Locker, error)
+	GetLockerUser(ctx context.Context, id int32) (LockerUser, error)
+	GetUser(ctx context.Context, id int32) (User, error)
+	UpdateLocker(ctx context.Context, arg UpdateLockerParams) (sql.Result, error)
+	UpdateLockerNfcSig(ctx context.Context, arg UpdateLockerNfcSigParams) (sql.Result, error)
+	UpdateLockerStatus(ctx context.Context, arg UpdateLockerStatusParams) (sql.Result, error)
+	UpdateLockerUser(ctx context.Context, arg UpdateLockerUserParams) (sql.Result, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error)
 }
 
 var _ Querier = (*Queries)(nil)

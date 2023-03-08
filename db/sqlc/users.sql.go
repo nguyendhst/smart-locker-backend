@@ -11,28 +11,34 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-INSERT INTO users (name, password_hashed, email) VALUES ($1, $2, $3)
+INSERT INTO users (name, password_hashed, email) VALUES (?, ?, ?)
 `
 
-func (q *Queries) CreateUser(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.createUserStmt, createUser)
+type CreateUserParams struct {
+	Name           string `json:"name"`
+	PasswordHashed string `json:"passwordHashed"`
+	Email          string `json:"email"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
+	return q.exec(ctx, q.createUserStmt, createUser, arg.Name, arg.PasswordHashed, arg.Email)
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1
+DELETE FROM users WHERE id = ?
 `
 
-func (q *Queries) DeleteUser(ctx context.Context) error {
-	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser)
+func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
+	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, id)
 	return err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, password_hashed, email, role, created_at, last_modified FROM users WHERE id = $1
+SELECT id, name, password_hashed, email, role, created_at, last_modified FROM users WHERE id = ?
 `
 
-func (q *Queries) GetUser(ctx context.Context) (User, error) {
-	row := q.queryRow(ctx, q.getUserStmt, getUser)
+func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
+	row := q.queryRow(ctx, q.getUserStmt, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -47,9 +53,21 @@ func (q *Queries) GetUser(ctx context.Context) (User, error) {
 }
 
 const updateUser = `-- name: UpdateUser :execresult
-UPDATE users SET name = $1, password_hashed = $2, email = $3 WHERE id = $4
+UPDATE users SET name = ?, password_hashed = ?, email = ? WHERE id = ?
 `
 
-func (q *Queries) UpdateUser(ctx context.Context) (sql.Result, error) {
-	return q.exec(ctx, q.updateUserStmt, updateUser)
+type UpdateUserParams struct {
+	Name           string `json:"name"`
+	PasswordHashed string `json:"passwordHashed"`
+	Email          string `json:"email"`
+	ID             int32  `json:"id"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error) {
+	return q.exec(ctx, q.updateUserStmt, updateUser,
+		arg.Name,
+		arg.PasswordHashed,
+		arg.Email,
+		arg.ID,
+	)
 }
