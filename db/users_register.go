@@ -31,6 +31,7 @@ func (t *Tx) ExecRegisterTx(ctx context.Context, params RegisterParams) (Registe
 	var result RegisterResult
 
 	err := t.executeTx(ctx, func(q *sqlc.Queries) error {
+		// Create the user.
 		res, err := q.CreateUser(ctx, sqlc.CreateUserParams{
 			Name:           "User",
 			Email:          params.Email,

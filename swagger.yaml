@@ -1,0 +1,89 @@
+openapi: 3.0.0
+servers:
+    # Added by API Auto Mocking Plugin
+    - description: SwaggerHub API Auto Mocking
+      url: https://virtserver.swaggerhub.com/nguyendhst/smart-locker/1.0.0
+info:
+    version: "1.0.0"
+    title: smart-locker-backend-api
+    description: The API for the Smart Locker project
+paths:
+    "/users/login":
+        get:
+            tags:
+                - Users
+            description: Login to the system
+            operationId: login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UserLoginInfo"
+                required: true
+            responses:
+                "200":
+                    description: successfully logged in
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SessionToken"
+                
+    "/users/register":
+        post:
+            tags:
+                - Users
+            operationId: register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UserRegistrationInfo"
+                required: true
+            responses:
+                "200":
+                    description: successfully registered user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SessionToken"
+            
+           
+components:
+    schemas:
+        UserID:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    example: 0729a580-2240-11e6-9eb5-0002a5d5c51b
+        UserLoginInfo:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                    example: "joe@gmail.com"
+                password:
+                    type: string
+                    format: password
+                    example: "password"
+        UserRegistrationInfo:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                    example: "joe@gmail.com"
+                password:
+                    type: string
+                    format: password
+                    example: "password"
+        SessionToken:
+              type: object
+              properties:
+                  token:
+                      type: string
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+

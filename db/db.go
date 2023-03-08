@@ -11,13 +11,13 @@ import (
 )
 
 type (
-	// DB is the interface for the database querier.
+	// DB is the interface for the database querier. (Named DBTX in the official docs).
 	DB interface {
 		sqlc.Querier
 		ExecRegisterTx(context.Context, RegisterParams) (RegisterResult, error)
 	}
 
-	// Tx represents a transaction which implements the DB querier interface.
+	// Tx is the database transaction. It implements the DB interface.
 	Tx struct {
 		*sqlc.Queries
 		db *sql.DB
