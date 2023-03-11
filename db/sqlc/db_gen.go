@@ -57,8 +57,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getLockerUserStmt, err = db.PrepareContext(ctx, getLockerUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLockerUser: %w", err)
 	}
-	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
 	}
 	if q.updateLockerStmt, err = db.PrepareContext(ctx, updateLocker); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateLocker: %w", err)
@@ -135,9 +135,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getLockerUserStmt: %w", cerr)
 		}
 	}
-	if q.getUserStmt != nil {
-		if cerr := q.getUserStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+	if q.getUserByEmailStmt != nil {
+		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
 		}
 	}
 	if q.updateLockerStmt != nil {
@@ -215,7 +215,7 @@ type Queries struct {
 	getLockerByLockerNumberAndLocationStmt *sql.Stmt
 	getLockerByNfcSigStmt                  *sql.Stmt
 	getLockerUserStmt                      *sql.Stmt
-	getUserStmt                            *sql.Stmt
+	getUserByEmailStmt                     *sql.Stmt
 	updateLockerStmt                       *sql.Stmt
 	updateLockerNfcSigStmt                 *sql.Stmt
 	updateLockerStatusStmt                 *sql.Stmt
@@ -238,7 +238,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getLockerByLockerNumberAndLocationStmt: q.getLockerByLockerNumberAndLocationStmt,
 		getLockerByNfcSigStmt:                  q.getLockerByNfcSigStmt,
 		getLockerUserStmt:                      q.getLockerUserStmt,
-		getUserStmt:                            q.getUserStmt,
+		getUserByEmailStmt:                     q.getUserByEmailStmt,
 		updateLockerStmt:                       q.updateLockerStmt,
 		updateLockerNfcSigStmt:                 q.updateLockerNfcSigStmt,
 		updateLockerStatusStmt:                 q.updateLockerStatusStmt,

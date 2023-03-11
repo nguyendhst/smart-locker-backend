@@ -4,11 +4,14 @@ package api
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"smart-locker/backend/config"
 	"smart-locker/backend/db"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 
 	swagger "smart-locker/backend/adafruit-go-client-v2"
 )
@@ -17,6 +20,7 @@ var (
 	apiEndpoints = []string{
 		"api/hello",
 		"api/users/register",
+		"api/users/login",
 	}
 )
 
@@ -46,6 +50,23 @@ func NewServer() (*Server, error) {
 	}
 
 	e := echo.New()
+
+	// instantiate loggin middleware
+	// ripped straight from the docs
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus: true,
+		LogURI:    true,
+		BeforeNextFunc: func(c echo.Context) {
+			c.Set("customValueFromContext", 42)
+		},
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			//value, _ := c.Get("customValueFromContext").(int)
+			fmt.Printf("REQUEST: uri: %v, status: %v\n", v.URI, v.Status)
+			return nil
+		},
+	}))
+
+	e.Logger.SetLevel(log.DEBUG)
 
 	return &Server{
 		Router: e,
@@ -94,6 +115,8 @@ func _initApi(s *Server, e *echo.Echo) error {
 			e.GET(endpoint, _helloWorld)
 		case "api/users/register":
 			e.POST(endpoint, s.registerUser)
+		case "api/users/login":
+			e.POST(endpoint, s.loginUser)
 		}
 	}
 	return nil

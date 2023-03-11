@@ -21,7 +21,7 @@ type Querier interface {
 	GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error)
 	GetLockerByNfcSig(ctx context.Context, nfcSig string) (Locker, error)
 	GetLockerUser(ctx context.Context, id int32) (LockerUser, error)
-	GetUser(ctx context.Context, id int32) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (string, error)
 	UpdateLocker(ctx context.Context, arg UpdateLockerParams) (sql.Result, error)
 	UpdateLockerNfcSig(ctx context.Context, arg UpdateLockerNfcSigParams) (sql.Result, error)
 	UpdateLockerStatus(ctx context.Context, arg UpdateLockerStatusParams) (sql.Result, error)

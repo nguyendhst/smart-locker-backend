@@ -33,23 +33,15 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 	return err
 }
 
-const getUser = `-- name: GetUser :one
-SELECT id, name, password_hashed, email, role, created_at, last_modified FROM users WHERE id = ?
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT password_hashed FROM users WHERE email = ?
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
-	row := q.queryRow(ctx, q.getUserStmt, getUser, id)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.PasswordHashed,
-		&i.Email,
-		&i.Role,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
-	return i, err
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (string, error) {
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
+	var password_hashed string
+	err := row.Scan(&password_hashed)
+	return password_hashed, err
 }
 
 const updateUser = `-- name: UpdateUser :execresult
