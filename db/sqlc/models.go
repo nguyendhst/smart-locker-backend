@@ -53,6 +53,51 @@ func (ns NullLockersStatus) Value() (driver.Value, error) {
 	return ns.LockersStatus, nil
 }
 
+type SensorsType string
+
+const (
+	SensorsTypeTemperature SensorsType = "temperature"
+	SensorsTypeMoisture    SensorsType = "moisture"
+	SensorsTypeServo       SensorsType = "servo"
+	SensorsTypeSpeaker     SensorsType = "speaker"
+	SensorsTypeLcd         SensorsType = "lcd"
+)
+
+func (e *SensorsType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SensorsType(s)
+	case string:
+		*e = SensorsType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SensorsType: %T", src)
+	}
+	return nil
+}
+
+type NullSensorsType struct {
+	SensorsType SensorsType
+	Valid       bool // Valid is true if SensorsType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSensorsType) Scan(value interface{}) error {
+	if value == nil {
+		ns.SensorsType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SensorsType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSensorsType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.SensorsType, nil
+}
+
 type UsersRole string
 
 const (
@@ -105,10 +150,26 @@ type Locker struct {
 	LastModified sql.NullTime  `json:"lastModified"`
 }
 
+type LockerSensor struct {
+	ID           int32        `json:"id"`
+	SensorID     int32        `json:"sensorID"`
+	LockerID     int32        `json:"lockerID"`
+	CreatedAt    sql.NullTime `json:"createdAt"`
+	LastModified sql.NullTime `json:"lastModified"`
+}
+
 type LockerUser struct {
 	ID           int32        `json:"id"`
 	UserID       int32        `json:"userID"`
 	LockerID     int32        `json:"lockerID"`
+	CreatedAt    sql.NullTime `json:"createdAt"`
+	LastModified sql.NullTime `json:"lastModified"`
+}
+
+type Sensor struct {
+	ID           int32        `json:"id"`
+	FeedKey      string       `json:"feedKey"`
+	Type         SensorsType  `json:"type"`
 	CreatedAt    sql.NullTime `json:"createdAt"`
 	LastModified sql.NullTime `json:"lastModified"`
 }

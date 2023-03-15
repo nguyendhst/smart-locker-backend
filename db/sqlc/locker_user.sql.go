@@ -32,21 +32,31 @@ func (q *Queries) DeleteLockerUser(ctx context.Context, id int32) error {
 	return err
 }
 
-const getLockerUser = `-- name: GetLockerUser :one
-SELECT id, user_id, locker_id, created_at, last_modified FROM locker_user WHERE id = ?
+const getLockersOfUser = `-- name: GetLockersOfUser :many
+SELECT locker_id FROM locker_user WHERE user_id = ?
 `
 
-func (q *Queries) GetLockerUser(ctx context.Context, id int32) (LockerUser, error) {
-	row := q.queryRow(ctx, q.getLockerUserStmt, getLockerUser, id)
-	var i LockerUser
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.LockerID,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
-	return i, err
+func (q *Queries) GetLockersOfUser(ctx context.Context, userID int32) ([]int32, error) {
+	rows, err := q.query(ctx, q.getLockersOfUserStmt, getLockersOfUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []int32{}
+	for rows.Next() {
+		var locker_id int32
+		if err := rows.Scan(&locker_id); err != nil {
+			return nil, err
+		}
+		items = append(items, locker_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateLockerUser = `-- name: UpdateLockerUser :execresult

@@ -1,3 +1,5 @@
 DROP TABLE IF EXISTS `lockers`;
 DROP TABLE IF EXISTS `locker_user`;
 DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `sensors`;
+DROP TABLE IF EXISTS `locker_sensor`;

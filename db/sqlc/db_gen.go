@@ -54,8 +54,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getLockerByNfcSigStmt, err = db.PrepareContext(ctx, getLockerByNfcSig); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLockerByNfcSig: %w", err)
 	}
-	if q.getLockerUserStmt, err = db.PrepareContext(ctx, getLockerUser); err != nil {
-		return nil, fmt.Errorf("error preparing query GetLockerUser: %w", err)
+	if q.getLockersOfUserStmt, err = db.PrepareContext(ctx, getLockersOfUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetLockersOfUser: %w", err)
+	}
+	if q.getSensorByIdStmt, err = db.PrepareContext(ctx, getSensorById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSensorById: %w", err)
+	}
+	if q.getSensorsOfLockerStmt, err = db.PrepareContext(ctx, getSensorsOfLocker); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSensorsOfLocker: %w", err)
 	}
 	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
@@ -130,9 +136,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getLockerByNfcSigStmt: %w", cerr)
 		}
 	}
-	if q.getLockerUserStmt != nil {
-		if cerr := q.getLockerUserStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getLockerUserStmt: %w", cerr)
+	if q.getLockersOfUserStmt != nil {
+		if cerr := q.getLockersOfUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getLockersOfUserStmt: %w", cerr)
+		}
+	}
+	if q.getSensorByIdStmt != nil {
+		if cerr := q.getSensorByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSensorByIdStmt: %w", cerr)
+		}
+	}
+	if q.getSensorsOfLockerStmt != nil {
+		if cerr := q.getSensorsOfLockerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSensorsOfLockerStmt: %w", cerr)
 		}
 	}
 	if q.getUserByEmailStmt != nil {
@@ -214,7 +230,9 @@ type Queries struct {
 	getLockerByLockerNumberStmt            *sql.Stmt
 	getLockerByLockerNumberAndLocationStmt *sql.Stmt
 	getLockerByNfcSigStmt                  *sql.Stmt
-	getLockerUserStmt                      *sql.Stmt
+	getLockersOfUserStmt                   *sql.Stmt
+	getSensorByIdStmt                      *sql.Stmt
+	getSensorsOfLockerStmt                 *sql.Stmt
 	getUserByEmailStmt                     *sql.Stmt
 	updateLockerStmt                       *sql.Stmt
 	updateLockerNfcSigStmt                 *sql.Stmt
@@ -237,7 +255,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getLockerByLockerNumberStmt:            q.getLockerByLockerNumberStmt,
 		getLockerByLockerNumberAndLocationStmt: q.getLockerByLockerNumberAndLocationStmt,
 		getLockerByNfcSigStmt:                  q.getLockerByNfcSigStmt,
-		getLockerUserStmt:                      q.getLockerUserStmt,
+		getLockersOfUserStmt:                   q.getLockersOfUserStmt,
+		getSensorByIdStmt:                      q.getSensorByIdStmt,
+		getSensorsOfLockerStmt:                 q.getSensorsOfLockerStmt,
 		getUserByEmailStmt:                     q.getUserByEmailStmt,
 		updateLockerStmt:                       q.updateLockerStmt,
 		updateLockerNfcSigStmt:                 q.updateLockerNfcSigStmt,

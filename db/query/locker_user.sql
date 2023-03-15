@@ -1,5 +1,5 @@
--- name: GetLockerUser :one
-SELECT * FROM locker_user WHERE id = ?;
+-- name: GetLockersOfUser :many
+SELECT locker_id FROM locker_user WHERE user_id = ?;
 
 -- name: CreateLockerUser :execresult
 INSERT INTO locker_user (user_id, locker_id) VALUES (?, ?);
