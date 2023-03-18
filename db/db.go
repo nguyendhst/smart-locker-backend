@@ -16,6 +16,7 @@ type (
 		sqlc.Querier
 		ExecRegisterTx(context.Context, RegisterParams) (RegisterResult, error)
 		ExecLoginTx(context.Context, LoginParams) (LoginResult, error)
+		ExecGetAllUserFeedsTx(context.Context, GetAllUserFeedsParams) (GetAllUserFeedsResult, error)
 	}
 
 	// Tx is the database transaction. It implements the DB interface.

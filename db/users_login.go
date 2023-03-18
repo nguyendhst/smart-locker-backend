@@ -31,7 +31,7 @@ func (t *Tx) ExecLoginTx(c context.Context, param LoginParams) (LoginResult, err
 			return err
 		}
 
-		if err := utils.CheckPasswordHash(param.Password, res); err != nil {
+		if err := utils.CheckPasswordHash(param.Password, res.PasswordHashed); err != nil {
 			return fmt.Errorf("passord mismatch")
 		}
 
