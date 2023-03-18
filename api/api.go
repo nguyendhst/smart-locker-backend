@@ -9,18 +9,20 @@ import (
 	"smart-locker/backend/config"
 	"smart-locker/backend/db"
 
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 
-	swagger "smart-locker/backend/adafruit-go-client-v2"
+	swagger "github.com/nguyendhst/adafruit-go-client-v2"
 )
 
 var (
 	apiEndpoints = []string{
-		"api/hello",
-		"api/users/register",
-		"api/users/login",
+		"/api/hello",
+		"/api/users/register",
+		"/api/users/login",
+		"/api/feeds/all",
 	}
 )
 
@@ -39,8 +41,6 @@ func NewServer() (*Server, error) {
 	var db db.DB
 	var err error
 
-	// jwt
-
 	if config, err = _initConfig(); err != nil {
 		return nil, err
 	} else if db, err = _initDB(config); err != nil {
@@ -56,15 +56,20 @@ func NewServer() (*Server, error) {
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus: true,
 		LogURI:    true,
+		LogMethod: true,
 		BeforeNextFunc: func(c echo.Context) {
 			c.Set("customValueFromContext", 42)
 		},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			//value, _ := c.Get("customValueFromContext").(int)
-			fmt.Printf("REQUEST: uri: %v, status: %v\n", v.URI, v.Status)
+			fmt.Printf("REQUEST: %v, uri: %v, status: %v\n", v.Method, v.URI, v.Status)
 			return nil
 		},
 	}))
+
+	//e.Use(echojwt.WithConfig(echojwt.Config{
+	//	SigningKey: []byte("secret"),
+	//}))
 
 	e.Logger.SetLevel(log.DEBUG)
 
@@ -109,27 +114,32 @@ func _initDB(config *config.Config) (db.DB, error) {
 }
 
 func _initApi(s *Server, e *echo.Echo) error {
+
+	// non-restricted endpoints
 	for _, endpoint := range apiEndpoints {
 		switch endpoint {
-		case "api/hello":
+		case "/api/hello":
 			e.GET(endpoint, _helloWorld)
-		case "api/users/register":
+		case "/api/users/register":
 			e.POST(endpoint, s.registerUser)
-		case "api/users/login":
+		case "/api/users/login":
 			e.POST(endpoint, s.loginUser)
 		}
+
+	}
+
+	// restricted endpoints
+	restricted := s.Router.Group("/api/feeds")
+	{
+		restricted.Use(echojwt.WithConfig(echojwt.Config{
+			SigningKey: []byte("secret"),
+		}))
+
+		restricted.POST("all", s.getAllFeed)
+
 	}
 	return nil
 }
-
-// func _initAdafruit(config *config.Config) (*ada.Client, error) {
-// 	c := ada.NewClient(config.AdafruitUsername, config.AdafruitKey)
-// 	// test ping, get all feeds
-// 	if _, _, err := c.Feed.All(); err != nil {
-// 		return nil, err
-// 	}
-// 	return c, nil
-// }
 
 func _initAdafruit(config *config.Config) (*swagger.APIClient, error) {
 	cfg := swagger.NewConfiguration()

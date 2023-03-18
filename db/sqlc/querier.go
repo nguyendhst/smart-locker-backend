@@ -23,7 +23,7 @@ type Querier interface {
 	GetLockersOfUser(ctx context.Context, userID int32) ([]int32, error)
 	GetSensorById(ctx context.Context, id int32) (GetSensorByIdRow, error)
 	GetSensorsOfLocker(ctx context.Context, lockerID int32) ([]int32, error)
-	GetUserByEmail(ctx context.Context, email string) (string, error)
+	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	UpdateLocker(ctx context.Context, arg UpdateLockerParams) (sql.Result, error)
 	UpdateLockerNfcSig(ctx context.Context, arg UpdateLockerNfcSigParams) (sql.Result, error)
 	UpdateLockerStatus(ctx context.Context, arg UpdateLockerStatusParams) (sql.Result, error)

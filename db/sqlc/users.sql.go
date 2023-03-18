@@ -34,14 +34,19 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT password_hashed FROM users WHERE email = ?
+SELECT id, password_hashed FROM users WHERE email = ?
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (string, error) {
+type GetUserByEmailRow struct {
+	ID             int32  `json:"id"`
+	PasswordHashed string `json:"passwordHashed"`
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
-	var password_hashed string
-	err := row.Scan(&password_hashed)
-	return password_hashed, err
+	var i GetUserByEmailRow
+	err := row.Scan(&i.ID, &i.PasswordHashed)
+	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :execresult

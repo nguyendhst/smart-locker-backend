@@ -1,5 +1,5 @@
 -- name: GetUserByEmail :one
-SELECT password_hashed FROM users WHERE email = ?;
+SELECT id, password_hashed FROM users WHERE email = ?;
 
 -- name: CreateUser :execresult
 INSERT INTO users (name, password_hashed, email) VALUES (?, ?, ?);
