@@ -41,3 +41,4 @@ CREATE TABLE `locker_sensor` (
   `created_at` datetime DEFAULT (now()),
   `last_modified` datetime DEFAULT (now())
 );
+
