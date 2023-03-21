@@ -40,12 +40,37 @@ paths:
                             $ref: "#/components/schemas/UserRegistrationInfo"
                 required: true
             responses:
-                "200":
+                "201":
                     description: successfully registered user
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SessionToken"
+
+    "/feeds/all":
+        get:
+            tags:
+                - Feeds
+            description: Get all feeds
+            operationId: getAllFeeds
+            parameters:
+              - in: query
+                name: x-aio-key
+                schema:
+                  type: string
+                  example: "aio_1234567890abcdef1234567890abcdef"
+                required: true
+                description: The API key to use
+
+            responses:
+                "200":
+                    description: successfully retrieved all feeds
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/AllUserFeedData"
             
            
 components:
@@ -85,5 +110,47 @@ components:
                   token:
                       type: string
                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-
-
+        AllUserFeedData:
+              type: object
+              properties:
+                  lockers:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/LockerFeeds"
+        
+        LockerFeeds:
+              type: object
+              properties:
+                  id:
+                      type: string
+                      example: "1"
+                  feeds:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/FeedData"
+        FeedData:
+              type: object
+              properties:
+                  id:
+                      type: string
+                      example: "1"
+                  feed: 
+                      type: string
+                      example: "locker1-lock"
+                  feed_type:
+                      type: string
+                      example: "lock"
+                  feed_data:
+                      type: object
+                      $ref: "#/components/schemas/FeedDataMap"
+        
+        FeedDataMap:
+              type: object
+              properties:
+                  "20.0":
+                      type: string
+                      example: "2023-03-21T03:21:19Z"
+                  "21.0":
+                      type: string
+                      example: "2023-03-21T03:21:25Z"
+                       
