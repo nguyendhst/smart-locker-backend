@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"smart-locker/backend/db"
 	"smart-locker/backend/token"
+	"sync"
 	"time"
 
 	"github.com/antihax/optional"
@@ -21,9 +22,6 @@ var (
 	resolution int32 = 1
 	// aggregate field. Must be one of: avg, sum, val, min, max, val_count
 	//field string = "max"
-	// ISO8601 formatted dates.
-	endTime   time.Time = time.Now().UTC()
-	startTime time.Time = time.Now().Add(-duration).UTC()
 )
 
 type (
@@ -63,29 +61,58 @@ func (s *Server) getAllFeed(c echo.Context) error {
 	}
 
 	dataOpts := swagger.DataApiChartDataOpts{
-		StartTime:  optional.NewTime(startTime),
-		EndTime:    optional.NewTime(endTime),
+		StartTime:  optional.NewTime(time.Now().Add(-duration).UTC()),
+		EndTime:    optional.NewTime(time.Now().UTC()),
 		Resolution: optional.NewInt32(int32(resolution)),
 	}
 
 	// fetch from adafruit
+	wg := sync.WaitGroup{}
 	for _, locker := range result.Lockers {
+
+		fmt.Printf("Fetching %d feeds for locker %v) \n", len(locker.Feeds), locker.ID)
 		for _, feed := range locker.Feeds {
+			fmt.Printf("Fetching feed %v) \n", feed.Feed)
+			wg.Add(1)
 			ctx := context.Background()
 			ctx, cancel := context.WithTimeout(ctx, time.Second*15)
 			defer cancel()
-			go func(f db.Feed) {
-				s.AdafruitClient.DataApi.ChartData(
+
+			go func(f *db.Feed) {
+				resp, code, err := s.AdafruitClient.DataApi.ChartData(
 					ctx,
 					s.Config.AdafruitUsername,
 					f.Feed,
 					&dataOpts,
 				)
-
-			}(feed)
+				if err != nil {
+					fmt.Print("Failed fetch")
+					wg.Done()
+					return
+				}
+				fmt.Println("Fetch done")
+				fmt.Println("Status code: ", code.StatusCode)
+				fmt.Println("Data: ", resp.Data)
+				if code.StatusCode == http.StatusOK {
+					if f.FeedData == nil {
+						f.FeedData = make(map[string]time.Time)
+					}
+					for _, values := range resp.Data {
+						// convert string to time.Time
+						fmt.Println("Values: ", values)
+						t, err := time.Parse("2006-01-02T15:04:05Z", values[1])
+						if err != nil {
+							fmt.Println(err)
+							continue
+						}
+						f.FeedData[values[0]] = t
+					}
+				}
+				wg.Done()
+			}(&feed)
 		}
 	}
-
+	wg.Wait()
 	// Return the response.
 	res := AllFeedResponse{
 		result.Lockers,
