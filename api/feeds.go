@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"smart-locker/backend/db"
 	"smart-locker/backend/token"
-	"sync"
 	"time"
 
 	"github.com/antihax/optional"
@@ -19,7 +18,7 @@ var (
 	// 10 mins
 	duration time.Duration = 10 * time.Minute
 	// size of aggregation slice. Must be one of: 1, 5, 10, 30, 60, 120, 240, 480, or 960
-	resolution int32 = 1
+	resolution int32 = 5
 	// aggregate field. Must be one of: avg, sum, val, min, max, val_count
 	//field string = "max"
 )
@@ -67,52 +66,83 @@ func (s *Server) getAllFeed(c echo.Context) error {
 	}
 
 	// fetch from adafruit
-	wg := sync.WaitGroup{}
+	fmt.Printf("All lockers: %v\n", result.Lockers)
 	for _, locker := range result.Lockers {
 
-		fmt.Printf("Fetching %d feeds for locker %v) \n", len(locker.Feeds), locker.ID)
+		fmt.Printf("Fetching %d feeds for locker %v\n", len(locker.Feeds), locker.ID)
 		for _, feed := range locker.Feeds {
+
 			fmt.Printf("Fetching feed %v) \n", feed.Feed)
-			wg.Add(1)
 			ctx := context.Background()
 			ctx, cancel := context.WithTimeout(ctx, time.Second*15)
 			defer cancel()
 
-			go func(f *db.Feed) {
-				resp, code, err := s.AdafruitClient.DataApi.ChartData(
-					ctx,
-					s.Config.AdafruitUsername,
-					f.Feed,
-					&dataOpts,
-				)
-				if err != nil {
-					fmt.Print("Failed fetch")
-					wg.Done()
-					return
+			fmt.Println("Fetching feed: ", feed.Feed)
+			resp, code, err := s.AdafruitClient.DataApi.ChartData(
+				ctx,
+				s.Config.AdafruitUsername,
+				feed.Feed,
+				&dataOpts,
+			)
+			if err != nil {
+				fmt.Print("Failed fetch")
+			}
+			fmt.Println("Fetch done")
+			fmt.Println("Status code: ", code.StatusCode)
+			fmt.Printf("Data of %s: %s\n", feed.Feed, resp.Data)
+
+			if code.StatusCode == http.StatusOK {
+				if feed.FeedData == nil {
+					feed.FeedData = make(map[time.Time]string)
 				}
-				fmt.Println("Fetch done")
-				fmt.Println("Status code: ", code.StatusCode)
-				fmt.Println("Data: ", resp.Data)
-				if code.StatusCode == http.StatusOK {
-					if f.FeedData == nil {
-						f.FeedData = make(map[string]time.Time)
+				for _, values := range resp.Data {
+					// convert string to time.Time
+					fmt.Println("Values: ", values)
+					t, err := time.Parse("2006-01-02T15:04:05Z", values[0])
+					if err != nil {
+						fmt.Println(err)
+						continue
 					}
-					for _, values := range resp.Data {
-						// convert string to time.Time
-						fmt.Println("Values: ", values)
-						t, err := time.Parse("2006-01-02T15:04:05Z", values[1])
-						if err != nil {
-							fmt.Println(err)
-							continue
-						}
-						f.FeedData[values[0]] = t
-					}
+					feed.FeedData[t] = values[1]
 				}
-				wg.Done()
-			}(&feed)
+			}
+
+			// cannot perform concurrent fetch since adafruit api is not thread safe
+
+			//go func(ff *db.Feed) {
+			//	defer wg.Done()
+			//	fmt.Println("Fetching feed: ", ff.Feed)
+			//	resp, code, err := s.AdafruitClient.DataApi.ChartData(
+			//		ctx,
+			//		s.Config.AdafruitUsername,
+			//		ff.Feed,
+			//		&dataOpts,
+			//	)
+			//	if err != nil {
+			//		fmt.Print("Failed fetch")
+			//		return
+			//	}
+			//	fmt.Println("Fetch done")
+			//	fmt.Println("Status code: ", code.StatusCode)
+			//	fmt.Printf("Data of %s: %s\n", ff.Feed, resp.Data)
+			//	if code.StatusCode == http.StatusOK {
+			//		if ff.FeedData == nil {
+			//			ff.FeedData = make(map[string]time.Time)
+			//		}
+			//		for _, values := range resp.Data {
+			//			// convert string to time.Time
+			//			fmt.Println("Values: ", values)
+			//			t, err := time.Parse("2006-01-02T15:04:05Z", values[0])
+			//			if err != nil {
+			//				fmt.Println(err)
+			//				continue
+			//			}
+			//			ff.FeedData[values[1]] = t
+			//		}
+			//	}
+			//}(&feed)
 		}
 	}
-	wg.Wait()
 	// Return the response.
 	res := AllFeedResponse{
 		result.Lockers,

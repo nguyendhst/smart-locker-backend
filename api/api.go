@@ -4,11 +4,15 @@ package api
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"smart-locker/backend/config"
 	"smart-locker/backend/db"
+	"smart-locker/backend/token"
 
+	"github.com/golang-jwt/jwt/v4"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -39,13 +43,14 @@ func NewServer() (*Server, error) {
 
 	var config *config.Config
 	var db db.DB
+	var client *swagger.APIClient
 	var err error
 
 	if config, err = _initConfig(); err != nil {
 		return nil, err
 	} else if db, err = _initDB(config); err != nil {
 		return nil, err
-	} else if _, err = _initAdafruit(config); err != nil {
+	} else if client, err = _initAdafruit(config); err != nil {
 		return nil, err
 	}
 
@@ -74,9 +79,10 @@ func NewServer() (*Server, error) {
 	e.Logger.SetLevel(log.DEBUG)
 
 	return &Server{
-		Router: e,
-		Store:  db,
-		Config: config,
+		Router:         e,
+		Store:          db,
+		Config:         config,
+		AdafruitClient: client,
 	}, nil
 
 }
@@ -91,6 +97,12 @@ func StartServer() error {
 	if err = _initApi(s, s.Router); err != nil {
 		return err
 	}
+
+	data, err := json.MarshalIndent(s.Router.Routes(), "", "  ")
+	if err != nil {
+		return err
+	}
+	os.WriteFile("routes.json", data, 0644)
 
 	return s.Router.Start(":" + s.Config.Port)
 }
@@ -133,9 +145,12 @@ func _initApi(s *Server, e *echo.Echo) error {
 	{
 		restricted.Use(echojwt.WithConfig(echojwt.Config{
 			SigningKey: []byte("secret"),
+			NewClaimsFunc: func(c echo.Context) jwt.Claims {
+				return new(token.Payload)
+			},
 		}))
 
-		restricted.POST("all", s.getAllFeed)
+		restricted.GET("/all", s.getAllFeed)
 
 	}
 	return nil
@@ -154,6 +169,7 @@ func _initAdafruit(config *config.Config) (*swagger.APIClient, error) {
 	return c, nil
 }
 
+// helloworld api endpoints used for testing purposes
 func _helloWorld(c echo.Context) error {
 	// json "message":"Hello World!"
 	return c.JSON(http.StatusOK, map[string]string{

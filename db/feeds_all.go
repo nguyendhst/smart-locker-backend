@@ -15,7 +15,7 @@ type (
 		ID       int64                `json:"id"`
 		Feed     string               `json:"feed"`
 		FeedType string               `json:"feed_type"`
-		FeedData map[string]time.Time `json:"feed_data"`
+		FeedData map[time.Time]string `json:"feed_data"`
 	}
 
 	GetAllUserFeedsParams struct {
@@ -67,10 +67,9 @@ func (t *Tx) ExecGetAllUserFeedsTx(c context.Context, arg GetAllUserFeedsParams)
 				res.Lockers[i].Feeds = append(res.Lockers[i].Feeds, Feed{
 					Feed:     string(feed.FeedKey),
 					FeedType: string(feed.Type),
+					FeedData: map[time.Time]string{},
 				})
-
 			}
-
 		}
 
 		return err

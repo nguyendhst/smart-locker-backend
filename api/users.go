@@ -75,7 +75,7 @@ func (s *Server) registerUser(c echo.Context) error {
 		Token: result.Token,
 	}
 	c.Logger().Info("User registered: ", req.Email)
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusCreated, res)
 
 }
 

@@ -32,6 +32,9 @@ func (p *Payload) ExpiresAt() time.Time {
 	return p.RegisteredClaims.ExpiresAt.Time
 }
 
-func (p *Payload) Valid() bool {
-	return time.Now().After(p.ExpiresAt())
+func (p *Payload) Valid() error {
+	if time.Now().After(p.ExpiresAt()) {
+		return jwt.ErrInvalidKey
+	}
+	return nil
 }
