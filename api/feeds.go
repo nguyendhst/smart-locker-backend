@@ -106,41 +106,6 @@ func (s *Server) getAllFeed(c echo.Context) error {
 					feed.FeedData[t] = values[1]
 				}
 			}
-
-			// cannot perform concurrent fetch since adafruit api is not thread safe
-
-			//go func(ff *db.Feed) {
-			//	defer wg.Done()
-			//	fmt.Println("Fetching feed: ", ff.Feed)
-			//	resp, code, err := s.AdafruitClient.DataApi.ChartData(
-			//		ctx,
-			//		s.Config.AdafruitUsername,
-			//		ff.Feed,
-			//		&dataOpts,
-			//	)
-			//	if err != nil {
-			//		fmt.Print("Failed fetch")
-			//		return
-			//	}
-			//	fmt.Println("Fetch done")
-			//	fmt.Println("Status code: ", code.StatusCode)
-			//	fmt.Printf("Data of %s: %s\n", ff.Feed, resp.Data)
-			//	if code.StatusCode == http.StatusOK {
-			//		if ff.FeedData == nil {
-			//			ff.FeedData = make(map[string]time.Time)
-			//		}
-			//		for _, values := range resp.Data {
-			//			// convert string to time.Time
-			//			fmt.Println("Values: ", values)
-			//			t, err := time.Parse("2006-01-02T15:04:05Z", values[0])
-			//			if err != nil {
-			//				fmt.Println(err)
-			//				continue
-			//			}
-			//			ff.FeedData[values[1]] = t
-			//		}
-			//	}
-			//}(&feed)
 		}
 	}
 	// Return the response.

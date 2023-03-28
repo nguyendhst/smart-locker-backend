@@ -104,7 +104,12 @@ func StartServer() error {
 	}
 	os.WriteFile("routes.json", data, 0644)
 
-	return s.Router.Start(":" + s.Config.Port)
+	// stupid i know
+	if err := os.Setenv("PORT", s.Config.Port); err != nil {
+		return err
+	}
+
+	return s.Router.Start(":" + os.Getenv("PORT"))
 }
 
 func _initConfig() (*config.Config, error) {
