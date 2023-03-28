@@ -47,6 +47,11 @@ func (s *Server) registerUser(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
+	// Validate
+	if !utils.ValidateEmail(req.Email) || !utils.ValidatePassword(req.Password) {
+		return c.JSON(http.StatusBadRequest, "Invalid email or password")
+	}
+
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
