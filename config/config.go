@@ -69,12 +69,22 @@ func _loadConfigFile() (*Config, error) {
 	if config.Port == "" {
 		config.Port = "8080"
 		stdLogger.Info("No port specified in config file, defaulting to 8080")
-	} else if config.DSN == "" {
+	}
+	if config.DSN == "" {
 		stdLogger.Info("No planetscale url specified in config file")
 		return nil, fmt.Errorf("no planetscale url specified in config file")
-	} else if config.PScaleDB == "" {
+	}
+	if config.PScaleDB == "" {
 		stdLogger.Info("No planetscale database specified in config file")
 		return nil, fmt.Errorf("no planetscale database specified in config file")
+	}
+	if config.AdafruitUsername == "" {
+		stdLogger.Info("No adafruit username specified in config file")
+		return nil, fmt.Errorf("no adafruit username specified in config file")
+	}
+	if config.AdafruitKey == "" {
+		stdLogger.Info("No adafruit key specified in config file")
+		return nil, fmt.Errorf("no adafruit key specified in config file")
 	}
 
 	return &config, nil
