@@ -18,7 +18,7 @@ func main() {
 	// Start the server in a goroutine so that it doesn't block.
 	go func() {
 		if err := api.StartServer(); err != nil {
-			log.Fatal(err)
+			log.Fatal("Server starup error: ", err)
 		}
 	}()
 

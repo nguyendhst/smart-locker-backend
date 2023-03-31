@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"smart-locker/backend/alert"
 	"smart-locker/backend/config"
 	"smart-locker/backend/db"
 	"smart-locker/backend/token"
@@ -27,6 +28,7 @@ var (
 		"/api/users/register",
 		"/api/users/login",
 		"/api/feeds/all",
+		"/api/tester/fcm/ping",
 	}
 )
 
@@ -35,6 +37,8 @@ type Server struct {
 	Store          db.DB
 	Config         *config.Config
 	AdafruitClient *swagger.APIClient
+	adaCfg         *swagger.Configuration
+	Monitor        *alert.Alert
 }
 
 // NewServer loads the configuration and initializes the database connection.
@@ -44,15 +48,20 @@ func NewServer() (*Server, error) {
 	var config *config.Config
 	var db db.DB
 	var client *swagger.APIClient
+	var adaCfg *swagger.Configuration
+	//var monitor *alert.Alert
 	var err error
 
 	if config, err = _initConfig(); err != nil {
 		return nil, err
 	} else if db, err = _initDB(config); err != nil {
 		return nil, err
-	} else if client, err = _initAdafruit(config); err != nil {
+	} else if client, adaCfg, err = _initAdafruit(config); err != nil {
 		return nil, err
 	}
+	//} else if monitor, err = _initMonitor(config); err != nil {
+	//	return nil, err
+	//}
 
 	e := echo.New()
 
@@ -83,6 +92,8 @@ func NewServer() (*Server, error) {
 		Store:          db,
 		Config:         config,
 		AdafruitClient: client,
+		adaCfg:         adaCfg,
+		//Monitor:        monitor,
 	}, nil
 
 }
@@ -104,10 +115,12 @@ func StartServer() error {
 	}
 	os.WriteFile("routes.json", data, 0644)
 
-	// stupid i know
-	if err := os.Setenv("PORT", s.Config.Port); err != nil {
-		return err
-	}
+	// start stat monitoring
+	//ctx := context.Background()
+	// set adafruit username
+	//ctx = context.WithValue(ctx, "username", s.Config.AdafruitUsername)
+
+	//go s.Monitor.Start(ctx, s.adaCfg)
 
 	return s.Router.Start(":" + os.Getenv("PORT"))
 }
@@ -141,6 +154,8 @@ func _initApi(s *Server, e *echo.Echo) error {
 			e.POST(endpoint, s.registerUser)
 		case "/api/users/login":
 			e.POST(endpoint, s.loginUser)
+		case "/api/tester/fcm/ping":
+			e.POST(endpoint, s.fcmPing)
 		}
 
 	}
@@ -161,7 +176,7 @@ func _initApi(s *Server, e *echo.Echo) error {
 	return nil
 }
 
-func _initAdafruit(config *config.Config) (*swagger.APIClient, error) {
+func _initAdafruit(config *config.Config) (*swagger.APIClient, *swagger.Configuration, error) {
 	cfg := swagger.NewConfiguration()
 	// add X-AIO-Key to header
 	cfg.AddDefaultHeader("X-AIO-Key", config.AdafruitKey)
@@ -169,9 +184,13 @@ func _initAdafruit(config *config.Config) (*swagger.APIClient, error) {
 	// test ping, get all feeds
 	_, _, err := c.FeedsApi.AllFeeds(context.Background(), config.AdafruitUsername)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return c, nil
+	return c, cfg, nil
+}
+
+func _initMonitor(config *config.Config) (*alert.Alert, error) {
+	return alert.NewAlert()
 }
 
 // helloworld api endpoints used for testing purposes
