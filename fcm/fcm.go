@@ -24,10 +24,18 @@ func SendAlert(ctx context.Context, client *messaging.Client, topic, temp string
 
 	// See documentation on defining a message payload.
 	message := &messaging.Message{
-		Notification: &messaging.Notification{
-			Title: "Temperature Alert",
-			Body:  "Temperature is " + temp,
+		//Notification: &messaging.Notification{
+		//	Title: "Temperature Alert",
+		//	Body:  "Temperature is " + temp,
+		//},
+		Android: &messaging.AndroidConfig{
+			Notification: &messaging.AndroidNotification{
+				Title:     "Temperature Alert",
+				Body:      "Temperature is " + temp,
+				ChannelID: "temperature-alert",
+			},
 		},
+
 		Data: map[string]string{
 			topic: temp,
 		},
