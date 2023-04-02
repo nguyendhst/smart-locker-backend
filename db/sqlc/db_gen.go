@@ -60,6 +60,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getSensorByIdStmt, err = db.PrepareContext(ctx, getSensorById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSensorById: %w", err)
 	}
+	if q.getSensorsByTypeStmt, err = db.PrepareContext(ctx, getSensorsByType); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSensorsByType: %w", err)
+	}
 	if q.getSensorsOfLockerStmt, err = db.PrepareContext(ctx, getSensorsOfLocker); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSensorsOfLocker: %w", err)
 	}
@@ -144,6 +147,11 @@ func (q *Queries) Close() error {
 	if q.getSensorByIdStmt != nil {
 		if cerr := q.getSensorByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSensorByIdStmt: %w", cerr)
+		}
+	}
+	if q.getSensorsByTypeStmt != nil {
+		if cerr := q.getSensorsByTypeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSensorsByTypeStmt: %w", cerr)
 		}
 	}
 	if q.getSensorsOfLockerStmt != nil {
@@ -232,6 +240,7 @@ type Queries struct {
 	getLockerByNfcSigStmt                  *sql.Stmt
 	getLockersOfUserStmt                   *sql.Stmt
 	getSensorByIdStmt                      *sql.Stmt
+	getSensorsByTypeStmt                   *sql.Stmt
 	getSensorsOfLockerStmt                 *sql.Stmt
 	getUserByEmailStmt                     *sql.Stmt
 	updateLockerStmt                       *sql.Stmt
@@ -257,6 +266,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getLockerByNfcSigStmt:                  q.getLockerByNfcSigStmt,
 		getLockersOfUserStmt:                   q.getLockersOfUserStmt,
 		getSensorByIdStmt:                      q.getSensorByIdStmt,
+		getSensorsByTypeStmt:                   q.getSensorsByTypeStmt,
 		getSensorsOfLockerStmt:                 q.getSensorsOfLockerStmt,
 		getUserByEmailStmt:                     q.getUserByEmailStmt,
 		updateLockerStmt:                       q.updateLockerStmt,
