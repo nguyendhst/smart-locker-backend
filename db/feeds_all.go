@@ -66,7 +66,7 @@ func (t *Tx) ExecGetAllUserFeedsTx(c context.Context, arg GetAllUserFeedsParams)
 
 				res.Lockers[i].Feeds = append(res.Lockers[i].Feeds, Feed{
 					Feed:     string(feed.FeedKey),
-					FeedType: string(feed.Type),
+					FeedType: string(feed.Kind),
 					FeedData: map[time.Time]string{},
 				})
 			}

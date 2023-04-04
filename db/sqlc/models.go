@@ -53,49 +53,49 @@ func (ns NullLockersStatus) Value() (driver.Value, error) {
 	return ns.LockersStatus, nil
 }
 
-type SensorsType string
+type SensorsKind string
 
 const (
-	SensorsTypeTemperature SensorsType = "temperature"
-	SensorsTypeMoisture    SensorsType = "moisture"
-	SensorsTypeServo       SensorsType = "servo"
-	SensorsTypeSpeaker     SensorsType = "speaker"
-	SensorsTypeLcd         SensorsType = "lcd"
+	SensorsKindTemperature SensorsKind = "temperature"
+	SensorsKindMoisture    SensorsKind = "moisture"
+	SensorsKindServo       SensorsKind = "servo"
+	SensorsKindSpeaker     SensorsKind = "speaker"
+	SensorsKindLock        SensorsKind = "lock"
 )
 
-func (e *SensorsType) Scan(src interface{}) error {
+func (e *SensorsKind) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = SensorsType(s)
+		*e = SensorsKind(s)
 	case string:
-		*e = SensorsType(s)
+		*e = SensorsKind(s)
 	default:
-		return fmt.Errorf("unsupported scan type for SensorsType: %T", src)
+		return fmt.Errorf("unsupported scan type for SensorsKind: %T", src)
 	}
 	return nil
 }
 
-type NullSensorsType struct {
-	SensorsType SensorsType
-	Valid       bool // Valid is true if SensorsType is not NULL
+type NullSensorsKind struct {
+	SensorsKind SensorsKind
+	Valid       bool // Valid is true if SensorsKind is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullSensorsType) Scan(value interface{}) error {
+func (ns *NullSensorsKind) Scan(value interface{}) error {
 	if value == nil {
-		ns.SensorsType, ns.Valid = "", false
+		ns.SensorsKind, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.SensorsType.Scan(value)
+	return ns.SensorsKind.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullSensorsType) Value() (driver.Value, error) {
+func (ns NullSensorsKind) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return ns.SensorsType, nil
+	return ns.SensorsKind, nil
 }
 
 type UsersRole string
@@ -169,7 +169,7 @@ type LockerUser struct {
 type Sensor struct {
 	ID           int32        `json:"id"`
 	FeedKey      string       `json:"feedKey"`
-	Type         SensorsType  `json:"type"`
+	Kind         SensorsKind  `json:"kind"`
 	CreatedAt    sql.NullTime `json:"createdAt"`
 	LastModified sql.NullTime `json:"lastModified"`
 }

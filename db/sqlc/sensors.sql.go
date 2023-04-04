@@ -10,17 +10,49 @@ import (
 )
 
 const getSensorById = `-- name: GetSensorById :one
-SELECT feed_key, type FROM sensors WHERE id = ?
+SELECT feed_key, kind FROM sensors WHERE id = ?
 `
 
 type GetSensorByIdRow struct {
 	FeedKey string      `json:"feedKey"`
-	Type    SensorsType `json:"type"`
+	Kind    SensorsKind `json:"kind"`
 }
 
 func (q *Queries) GetSensorById(ctx context.Context, id int32) (GetSensorByIdRow, error) {
 	row := q.queryRow(ctx, q.getSensorByIdStmt, getSensorById, id)
 	var i GetSensorByIdRow
-	err := row.Scan(&i.FeedKey, &i.Type)
+	err := row.Scan(&i.FeedKey, &i.Kind)
 	return i, err
+}
+
+const getSensorsByType = `-- name: GetSensorsByType :many
+SELECT id, feed_key FROM sensors WHERE kind = ?
+`
+
+type GetSensorsByTypeRow struct {
+	ID      int32  `json:"id"`
+	FeedKey string `json:"feedKey"`
+}
+
+func (q *Queries) GetSensorsByType(ctx context.Context, kind SensorsKind) ([]GetSensorsByTypeRow, error) {
+	rows, err := q.query(ctx, q.getSensorsByTypeStmt, getSensorsByType, kind)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSensorsByTypeRow{}
+	for rows.Next() {
+		var i GetSensorsByTypeRow
+		if err := rows.Scan(&i.ID, &i.FeedKey); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

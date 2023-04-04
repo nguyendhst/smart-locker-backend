@@ -18,7 +18,7 @@ var (
 	// 10 mins
 	duration time.Duration = 10 * time.Minute
 	// size of aggregation slice. Must be one of: 1, 5, 10, 30, 60, 120, 240, 480, or 960
-	resolution int32 = 5
+	resolution int32 = 1
 	// aggregate field. Must be one of: avg, sum, val, min, max, val_count
 	//field string = "max"
 )

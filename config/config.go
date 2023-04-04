@@ -2,9 +2,7 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"smart-locker/backend/utils"
 
@@ -48,29 +46,45 @@ func _loadConfigFile() (*Config, error) {
 
 	stdLogger = utils.NewLogger("Config")
 	// Open the configuration file.
-	file, err := os.Open("config.json")
-	if err != nil {
-		return nil, fmt.Errorf("error opening config file: %s", err)
-	}
-	defer file.Close()
-	// DEBUG -- print content of config file
-	data, _ := io.ReadAll(file)
+	//file, err := os.Open("config.json")
+	//if err != nil {
+	//	return nil, fmt.Errorf("error opening config file: %s", err)
+	//}
+	//defer file.Close()
+	//// DEBUG -- print content of config file
+	//data, _ := io.ReadAll(file)
 	// log.Println(string(data))
 	// Read the configuration file.
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding config file: %s", err)
-	}
+	//err = json.Unmarshal(data, &config)
+	//if err != nil {
+	//	return nil, fmt.Errorf("error decoding config file: %s", err)
+	//}
+
+	config.Port = os.Getenv("PORT")
+	config.DSN = os.Getenv("PLANETSCALE_URL")
+	config.PScaleDB = os.Getenv("PLANETSCALE_DB")
+	config.AdafruitUsername = os.Getenv("ADAFRUIT_USERNAME")
+	config.AdafruitKey = os.Getenv("ADAFRUIT_KEY")
 
 	if config.Port == "" {
 		config.Port = "8080"
 		stdLogger.Info("No port specified in config file, defaulting to 8080")
-	} else if config.DSN == "" {
+	}
+	if config.DSN == "" {
 		stdLogger.Info("No planetscale url specified in config file")
 		return nil, fmt.Errorf("no planetscale url specified in config file")
-	} else if config.PScaleDB == "" {
+	}
+	if config.PScaleDB == "" {
 		stdLogger.Info("No planetscale database specified in config file")
 		return nil, fmt.Errorf("no planetscale database specified in config file")
+	}
+	if config.AdafruitUsername == "" {
+		stdLogger.Info("No adafruit username specified in config file")
+		return nil, fmt.Errorf("no adafruit username specified in config file")
+	}
+	if config.AdafruitKey == "" {
+		stdLogger.Info("No adafruit key specified in config file")
+		return nil, fmt.Errorf("no adafruit key specified in config file")
 	}
 
 	return &config, nil
