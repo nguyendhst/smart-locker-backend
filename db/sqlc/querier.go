@@ -19,7 +19,7 @@ type Querier interface {
 	GetLocker(ctx context.Context, id int32) (Locker, error)
 	GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error)
 	GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error)
-	GetLockerByNfcSig(ctx context.Context, nfcSig string) (Locker, error)
+	GetLockerByNfcSig(ctx context.Context, nfcSig string) (int32, error)
 	GetLockersOfUser(ctx context.Context, userID int32) ([]int32, error)
 	GetSensorById(ctx context.Context, id int32) (GetSensorByIdRow, error)
 	GetSensorsByType(ctx context.Context, kind SensorsKind) ([]GetSensorsByTypeRow, error)

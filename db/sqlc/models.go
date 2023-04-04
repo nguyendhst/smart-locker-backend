@@ -60,7 +60,7 @@ const (
 	SensorsKindMoisture    SensorsKind = "moisture"
 	SensorsKindServo       SensorsKind = "servo"
 	SensorsKindSpeaker     SensorsKind = "speaker"
-	SensorsKindLcd         SensorsKind = "lcd"
+	SensorsKindLock        SensorsKind = "lock"
 )
 
 func (e *SensorsKind) Scan(src interface{}) error {

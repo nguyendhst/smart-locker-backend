@@ -2,7 +2,7 @@
 SELECT * FROM lockers WHERE id = ?;
 
 -- name: GetLockerByNfcSig :one
-SELECT * FROM lockers WHERE nfc_sig = ?;
+SELECT id FROM lockers WHERE nfc_sig = ?;
 
 -- name: GetLockerByLockerNumber :one
 SELECT * FROM lockers WHERE locker_number = ?;

@@ -29,7 +29,7 @@ CREATE TABLE `users` (
 CREATE TABLE `sensors` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `feed_key` varchar(255) UNIQUE NOT NULL,
-  `kind` ENUM ('temperature', 'moisture', 'servo', 'speaker', 'lcd') NOT NULL,
+  `kind` ENUM ('temperature', 'moisture', 'servo', 'speaker', 'lock') NOT NULL,
   `created_at` datetime DEFAULT (now()),
   `last_modified` datetime DEFAULT (now())
 );

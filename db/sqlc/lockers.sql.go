@@ -102,22 +102,14 @@ func (q *Queries) GetLockerByLockerNumberAndLocation(ctx context.Context, arg Ge
 }
 
 const getLockerByNfcSig = `-- name: GetLockerByNfcSig :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE nfc_sig = ?
+SELECT id FROM lockers WHERE nfc_sig = ?
 `
 
-func (q *Queries) GetLockerByNfcSig(ctx context.Context, nfcSig string) (Locker, error) {
+func (q *Queries) GetLockerByNfcSig(ctx context.Context, nfcSig string) (int32, error) {
 	row := q.queryRow(ctx, q.getLockerByNfcSigStmt, getLockerByNfcSig, nfcSig)
-	var i Locker
-	err := row.Scan(
-		&i.ID,
-		&i.LockerNumber,
-		&i.Location,
-		&i.Status,
-		&i.NfcSig,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
-	return i, err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateLocker = `-- name: UpdateLocker :execresult
