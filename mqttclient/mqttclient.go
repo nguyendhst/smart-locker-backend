@@ -39,7 +39,7 @@ func NewClient(username string, authKey string, secure bool) *Client {
 	var _port string
 	opts := mqtt.NewClientOptions()
 	if secure {
-		opts.AddBroker("wss://" + host + ":" + port_secure)
+		opts.AddBroker("ssl://" + host + ":" + port_secure)
 
 		opts.SetTLSConfig(&tls.Config{
 			InsecureSkipVerify: true,
@@ -48,14 +48,15 @@ func NewClient(username string, authKey string, secure bool) *Client {
 
 		_port = port_secure
 	} else {
-		opts.AddBroker("ws://" + host + ":" + port)
+		opts.AddBroker("tcp://" + host + ":" + port)
 		_port = port
 	}
 	opts.SetUsername(username)
 	opts.SetPassword(authKey)
-	opts.SetClientID("smart-locker")
-	opts.SetCleanSession(false)
+	//opts.SetClientID("smart-locker")
+	opts.SetCleanSession(true)
 	opts.SetKeepAlive(keepalive)
+	opts.SetResumeSubs(false)
 
 	return &Client{
 		username:     username,
@@ -83,4 +84,8 @@ func (c *Client) Subscribe(topic string, qos byte, callback mqtt.MessageHandler)
 		return token.Error()
 	}
 	return nil
+}
+
+func (c *Client) IsConnected() bool {
+	return c.client.IsConnected()
 }

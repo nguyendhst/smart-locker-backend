@@ -113,14 +113,14 @@ func NewServer() (*Server, error) {
 
 }
 
-func StartServer() error {
+func StartServer(s *Server) error {
 
-	s, err := NewServer()
-	if err != nil {
-		return err
-	}
+	//s, err := NewServer()
+	//if err != nil {
+	//	return err
+	//}
 
-	if err = _initApi(s, s.Router); err != nil {
+	if err := _initApi(s, s.Router); err != nil {
 		return err
 	}
 
@@ -213,8 +213,10 @@ func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, er
 	mqttClient := mqttclient.NewClient(config.AdafruitUsername, config.AdafruitKey, true)
 	// connect to mqtt broker
 	if err := mqttClient.Connect(); err != nil {
+		fmt.Println("error connecting to mqtt broker: ", err)
 		return nil, err
 	}
+	fmt.Println("connected to mqtt broker. Stat: ", mqttClient.IsConnected())
 
 	// retrieve feed keys from DB
 	if store == nil {
@@ -237,6 +239,7 @@ func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, er
 		//	mqttclient.SensorFeedCallback); err != nil {
 		//	return nil, err
 		//}
+		fmt.Println("Subscribing: ", sensor.FeedKey)
 		switch sensor.Kind {
 		case "temperature":
 			if err := mqttClient.Subscribe(
@@ -274,4 +277,13 @@ func _helloWorld(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Hello World!",
 	})
+}
+
+func (s *Server) StopServer() error {
+	// stop monitoring
+	//s.Monitor.Stop()
+	// stop mqtt client
+	s.AdafruitClientMqtt.Disconnect()
+	// stop server
+	return s.Router.Close()
 }
