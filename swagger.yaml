@@ -54,13 +54,12 @@ paths:
             description: Get all feeds
             operationId: getAllFeeds
             parameters:
-              - in: query
-                name: x-aio-key
+              - in: header
+                name: Bearer
                 schema:
                   type: string
-                  example: "aio_1234567890abcdef1234567890abcdef"
                 required: true
-                description: The API key to use
+                description: The JWT token
 
             responses:
                 "200":
@@ -71,6 +70,49 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/AllUserFeedData"
+                                
+
+    "/locker/lock":
+        post:
+            tags:
+                - Locker
+            description: Lock the locker
+            operationId: lockLocker
+            responses:
+                "200":
+                    description: successfully locked the locker
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/LockSuccess"
+                "208":
+                    description: the locker is already locked
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AlreadyLocked"
+
+    "/locker/unlock":
+          post: 
+              tags:
+                  - Locker
+              description: Unlock the locker
+              operationId: unlockLocker
+              responses:
+                  "200":
+                      description: successfully unlocked the locker
+                      content:
+                          application/json:
+                              schema:
+                                  $ref: "#/components/schemas/UnlockSuccess"
+                  "208":
+                      description: the locker is already unlocked
+                      content:
+                          application/json:
+                              schema:
+                                  $ref: "#/components/schemas/AlreadyUnlocked"
+
+
             
            
 components:
@@ -153,4 +195,34 @@ components:
                   "21.0":
                       type: string
                       example: "2023-03-21T03:21:25Z"
+        
+        LockSuccess:
+              type: object
+              properties:
+                  message:
+                      type: string
+                      example: "Successfully locked the locker"
+        
+        AlreadyLocked:
+              type: object
+              properties:
+                  message:
+                      type: string
+                      example: "The locker is already locked"
+
+        UnlockSuccess:
+              type: object
+              properties:
+                  message:
+                      type: string
+                      example: "Successfully unlocked the locker"
+          
+
+        AlreadyUnlocked:
+              type: object
+              properties:
+                  message:
+                      type: string
+                      example: "The locker is already unlocked"
+                      
                        
