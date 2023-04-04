@@ -28,6 +28,8 @@ var (
 		"/api/users/register",
 		"/api/users/login",
 		"/api/feeds/all",
+		"/api/lockers/lock",
+		"/api/lockers/unlock",
 		"/api/tester/fcm/ping",
 	}
 )
@@ -39,6 +41,7 @@ type Server struct {
 	AdafruitClient *swagger.APIClient
 	adaCfg         *swagger.Configuration
 	Monitor        *alert.Alert
+	//Logger         zerolog.Logger
 }
 
 // NewServer loads the configuration and initializes the database connection.
@@ -87,13 +90,15 @@ func NewServer() (*Server, error) {
 
 	e.Logger.SetLevel(log.DEBUG)
 
+	//log := zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.InfoLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	return &Server{
 		Router:         e,
 		Store:          db,
 		Config:         config,
 		AdafruitClient: client,
 		adaCfg:         adaCfg,
-		//Monitor:        monitor,
+		//Logger:         &log,
 	}, nil
 
 }
@@ -154,6 +159,10 @@ func _initApi(s *Server, e *echo.Echo) error {
 			e.POST(endpoint, s.registerUser)
 		case "/api/users/login":
 			e.POST(endpoint, s.loginUser)
+		case "/api/lockers/lock":
+			e.POST(endpoint, s.lockLocker)
+		case "/api/lockers/unlock":
+			e.POST(endpoint, s.unlockLocker)
 		case "/api/tester/fcm/ping":
 			e.POST(endpoint, s.fcmPing)
 		}
@@ -189,9 +198,9 @@ func _initAdafruit(config *config.Config) (*swagger.APIClient, *swagger.Configur
 	return c, cfg, nil
 }
 
-func _initMonitor(config *config.Config) (*alert.Alert, error) {
-	return alert.NewAlert()
-}
+//func _initMonitor(config *config.Config) (*alert.Alert, error) {
+//	return alert.NewAlert()
+//}
 
 // helloworld api endpoints used for testing purposes
 func _helloWorld(c echo.Context) error {

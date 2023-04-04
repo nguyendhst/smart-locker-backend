@@ -12,8 +12,8 @@ require (
 	github.com/labstack/echo-jwt/v4 v4.1.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/labstack/gommon v0.4.0
-	github.com/montanaflynn/stats v0.7.0
 	github.com/nguyendhst/adafruit-go-client-v2 v0.0.0-20230307153231-437797bad769
+	github.com/rs/zerolog v1.29.0
 	golang.org/x/crypto v0.6.0
 	golang.org/x/oauth2 v0.6.0
 )
