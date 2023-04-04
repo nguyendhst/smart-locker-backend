@@ -11,6 +11,7 @@ import (
 	"smart-locker/backend/alert"
 	"smart-locker/backend/config"
 	"smart-locker/backend/db"
+	"smart-locker/backend/mqttclient"
 	"smart-locker/backend/token"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -32,15 +33,19 @@ var (
 		"/api/lockers/unlock",
 		"/api/tester/fcm/ping",
 	}
+	//{your Adafruit IO username}/feeds/{feed key}
+
+	ErrorUninitializedDatabase = fmt.Errorf("database not initialized")
 )
 
 type Server struct {
-	Router         *echo.Echo
-	Store          db.DB
-	Config         *config.Config
-	AdafruitClient *swagger.APIClient
-	adaCfg         *swagger.Configuration
-	Monitor        *alert.Alert
+	Router             *echo.Echo
+	Store              db.DB
+	Config             *config.Config
+	AdafruitClient     *swagger.APIClient
+	AdafruitClientMqtt *mqttclient.Client
+	adaCfg             *swagger.Configuration
+	Monitor            *alert.Alert
 	//Logger         zerolog.Logger
 }
 
@@ -50,7 +55,8 @@ func NewServer() (*Server, error) {
 
 	var config *config.Config
 	var db db.DB
-	var client *swagger.APIClient
+	var httpClient *swagger.APIClient
+	var mqttClient *mqttclient.Client
 	var adaCfg *swagger.Configuration
 	//var monitor *alert.Alert
 	var err error
@@ -59,7 +65,9 @@ func NewServer() (*Server, error) {
 		return nil, err
 	} else if db, err = _initDB(config); err != nil {
 		return nil, err
-	} else if client, adaCfg, err = _initAdafruit(config); err != nil {
+	} else if httpClient, adaCfg, err = _initAdafruit(config); err != nil {
+		return nil, err
+	} else if mqttClient, err = _initMqttClient(db, config); err != nil {
 		return nil, err
 	}
 	//} else if monitor, err = _initMonitor(config); err != nil {
@@ -93,11 +101,13 @@ func NewServer() (*Server, error) {
 	//log := zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.InfoLevel).Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	return &Server{
-		Router:         e,
-		Store:          db,
-		Config:         config,
-		AdafruitClient: client,
-		adaCfg:         adaCfg,
+		Router:             e,
+		Store:              db,
+		Config:             config,
+		AdafruitClient:     httpClient,
+		AdafruitClientMqtt: mqttClient,
+		adaCfg:             adaCfg,
+
 		//Logger:         &log,
 	}, nil
 
@@ -196,6 +206,62 @@ func _initAdafruit(config *config.Config) (*swagger.APIClient, *swagger.Configur
 		return nil, nil, err
 	}
 	return c, cfg, nil
+}
+
+func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, error) {
+	// create mqtt client
+	mqttClient := mqttclient.NewClient(config.AdafruitUsername, config.AdafruitKey, true)
+	// connect to mqtt broker
+	if err := mqttClient.Connect(); err != nil {
+		return nil, err
+	}
+
+	// retrieve feed keys from DB
+	if store == nil {
+		return nil, ErrorUninitializedDatabase
+	}
+	feeds, err := store.ExecGetAllSensorDataTx(
+		context.Background(),
+		db.GetAllSensorDataParams{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// subscribe and register handler
+
+	for _, sensor := range feeds.Sensors {
+		//if err := mqttClient.Subscribe(
+		//	fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
+		//	mqttclient.QOS_0,
+		//	mqttclient.SensorFeedCallback); err != nil {
+		//	return nil, err
+		//}
+		switch sensor.Kind {
+		case "temperature":
+			if err := mqttClient.Subscribe(
+				fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
+				mqttclient.QOS_0,
+				mqttclient.TemperatureFeedCallback); err != nil {
+				return nil, err
+			}
+		case "moisture":
+			if err := mqttClient.Subscribe(
+				fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
+				mqttclient.QOS_0,
+				mqttclient.MoistureFeedCallback); err != nil {
+				return nil, err
+			}
+		case "lock":
+			if err := mqttClient.Subscribe(
+				fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
+				mqttclient.QOS_0,
+				mqttclient.LockFeedCallback); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return mqttClient, nil
 }
 
 //func _initMonitor(config *config.Config) (*alert.Alert, error) {

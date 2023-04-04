@@ -78,6 +78,12 @@ paths:
                 - Locker
             description: Lock the locker
             operationId: lockLocker
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LockUnlockRequest"
+                required: true
             responses:
                 "200":
                     description: successfully locked the locker
@@ -98,6 +104,13 @@ paths:
                   - Locker
               description: Unlock the locker
               operationId: unlockLocker
+              requestBody:
+                  content:
+                      application/json:
+                          schema:
+                              $ref: "#/components/schemas/LockUnlockRequest"
+                  required: true
+
               responses:
                   "200":
                       description: successfully unlocked the locker
@@ -224,5 +237,11 @@ components:
                   message:
                       type: string
                       example: "The locker is already unlocked"
-                      
+
                        
+        LockUnlockRequest:
+              type: object
+              properties:
+                  nfc_sig:
+                      type: string
+                      example: "testnfc"

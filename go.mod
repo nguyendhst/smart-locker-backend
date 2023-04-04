@@ -5,6 +5,7 @@ go 1.19
 require (
 	firebase.google.com/go/v4 v4.10.0
 	github.com/antihax/optional v1.0.0
+	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
@@ -33,6 +34,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

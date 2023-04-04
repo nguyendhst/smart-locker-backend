@@ -6,9 +6,8 @@ import (
 	"log"
 	"smart-locker/backend/fcm"
 	"strconv"
-	"time"
 
-	"github.com/antihax/optional"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	swagger "github.com/nguyendhst/adafruit-go-client-v2"
 
 	firebase "firebase.google.com/go/v4"
@@ -39,36 +38,7 @@ func NewAlert() (*Alert, error) {
 }
 
 func (m *Alert) Start(ctx context.Context, cfg *swagger.Configuration) {
-	go m.startFetch(ctx, swagger.NewAPIClient(cfg))
 	go m.startTempAlert(ctx)
-}
-
-func (m *Alert) startFetch(ctx context.Context, client *swagger.APIClient) {
-	// fetch temperature every 5 seconds
-	for {
-
-		for _, feed := range feedkeys {
-			temp, _, err := client.DataApi.ChartData(
-				ctx,
-				ctx.Value("username").(string),
-				feed,
-				&swagger.DataApiChartDataOpts{
-					StartTime:  optional.NewTime(time.Now().Add(-(10 * time.Second)).UTC()),
-					EndTime:    optional.NewTime(time.Now().UTC()),
-					Resolution: optional.NewInt32(int32(1)),
-				})
-
-			if err != nil {
-				fmt.Println("Fetch error", err, temp, ctx.Value("username").(string), feed)
-			} else {
-				if len(temp.Data) > 0 {
-					m.AnalyzeTemp(temp.Data)
-				}
-			}
-			time.Sleep(15 * time.Second)
-		}
-		//time.Sleep(5 * time.Second)
-	}
 }
 
 func (m *Alert) AnalyzeTemp(temp [][]string) {
@@ -111,6 +81,10 @@ func (m *Alert) AnalyzeTemp(temp [][]string) {
 	//	dmax := 1.0 / (2 * float64(len(values))) * (1 - p)
 	//}
 
+}
+
+func TemperatureHandler(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("Received message on topic: %s\nMessage: %s\n", msg.Topic(), msg.Payload())
 }
 
 func (m *Alert) startTempAlert(ctx context.Context) {

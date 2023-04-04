@@ -42,6 +42,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
+	if q.getAllSensorsStmt, err = db.PrepareContext(ctx, getAllSensors); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllSensors: %w", err)
+	}
 	if q.getLockerStmt, err = db.PrepareContext(ctx, getLocker); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLocker: %w", err)
 	}
@@ -117,6 +120,11 @@ func (q *Queries) Close() error {
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
+		}
+	}
+	if q.getAllSensorsStmt != nil {
+		if cerr := q.getAllSensorsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllSensorsStmt: %w", cerr)
 		}
 	}
 	if q.getLockerStmt != nil {
@@ -234,6 +242,7 @@ type Queries struct {
 	deleteLockerStmt                       *sql.Stmt
 	deleteLockerUserStmt                   *sql.Stmt
 	deleteUserStmt                         *sql.Stmt
+	getAllSensorsStmt                      *sql.Stmt
 	getLockerStmt                          *sql.Stmt
 	getLockerByLockerNumberStmt            *sql.Stmt
 	getLockerByLockerNumberAndLocationStmt *sql.Stmt
@@ -260,6 +269,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteLockerStmt:                       q.deleteLockerStmt,
 		deleteLockerUserStmt:                   q.deleteLockerUserStmt,
 		deleteUserStmt:                         q.deleteUserStmt,
+		getAllSensorsStmt:                      q.getAllSensorsStmt,
 		getLockerStmt:                          q.getLockerStmt,
 		getLockerByLockerNumberStmt:            q.getLockerByLockerNumberStmt,
 		getLockerByLockerNumberAndLocationStmt: q.getLockerByLockerNumberAndLocationStmt,

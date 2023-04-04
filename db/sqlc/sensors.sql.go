@@ -9,6 +9,39 @@ import (
 	"context"
 )
 
+const getAllSensors = `-- name: GetAllSensors :many
+SELECT id, feed_key, kind FROM sensors
+`
+
+type GetAllSensorsRow struct {
+	ID      int32       `json:"id"`
+	FeedKey string      `json:"feedKey"`
+	Kind    SensorsKind `json:"kind"`
+}
+
+func (q *Queries) GetAllSensors(ctx context.Context) ([]GetAllSensorsRow, error) {
+	rows, err := q.query(ctx, q.getAllSensorsStmt, getAllSensors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAllSensorsRow{}
+	for rows.Next() {
+		var i GetAllSensorsRow
+		if err := rows.Scan(&i.ID, &i.FeedKey, &i.Kind); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSensorById = `-- name: GetSensorById :one
 SELECT feed_key, kind FROM sensors WHERE id = ?
 `

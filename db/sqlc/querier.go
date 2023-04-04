@@ -16,6 +16,7 @@ type Querier interface {
 	DeleteLocker(ctx context.Context, id int32) error
 	DeleteLockerUser(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id int32) error
+	GetAllSensors(ctx context.Context) ([]GetAllSensorsRow, error)
 	GetLocker(ctx context.Context, id int32) (Locker, error)
 	GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error)
 	GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error)

@@ -18,6 +18,7 @@ type (
 		ExecLoginTx(context.Context, LoginParams) (LoginResult, error)
 		ExecGetAllUserFeedsTx(context.Context, GetAllUserFeedsParams) (GetAllUserFeedsResult, error)
 		ExecGetFeedByNFCSigTx(context.Context, GetFeedByNFCSigParams) (GetFeedByNFCSigResult, error)
+		ExecGetAllSensorDataTx(context.Context, GetAllSensorDataParams) (GetAllSensorDataResult, error)
 	}
 
 	// Tx is the database transaction. It implements the DB interface.
