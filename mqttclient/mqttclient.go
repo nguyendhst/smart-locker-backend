@@ -39,7 +39,7 @@ func NewClient(username string, authKey string, secure bool) *Client {
 	var _port string
 	opts := mqtt.NewClientOptions()
 	if secure {
-		opts.AddBroker("ssl://" + host + ":" + port_secure)
+		opts.AddBroker("wss://" + host + ":" + port_secure)
 
 		opts.SetTLSConfig(&tls.Config{
 			InsecureSkipVerify: true,
@@ -48,7 +48,7 @@ func NewClient(username string, authKey string, secure bool) *Client {
 
 		_port = port_secure
 	} else {
-		opts.AddBroker("tcp://" + host + ":" + port)
+		opts.AddBroker("ws://" + host + ":" + port)
 		_port = port
 	}
 	opts.SetUsername(username)
