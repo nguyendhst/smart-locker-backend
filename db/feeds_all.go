@@ -2,14 +2,18 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	sqlc "smart-locker/backend/db/sqlc"
 	"time"
 )
 
 type (
 	Locker struct {
-		ID    int64  `json:"id"`
-		Feeds []Feed `json:"feeds"`
+		ID           int64                  `json:"id"`
+		Location     string                 `json:"location"`
+		LastAccessed sql.NullTime           `json:"last_accessed,omitempty"`
+		LockStatus   sqlc.LockersLockStatus `json:"lock_status"`
+		Feeds        []Feed                 `json:"feeds"`
 	}
 	Feed struct {
 		ID       int64                `json:"id"`
@@ -40,22 +44,29 @@ func (t *Tx) ExecGetAllUserFeedsTx(c context.Context, arg GetAllUserFeedsParams)
 			return err
 		}
 		// find user's lockers
-		lockers, err := q.GetLockersOfUser(c, usr.ID)
+		lockerIds, err := q.GetLockersOfUser(c, usr.ID)
 		if err != nil {
 			return err
 		}
 
 		// find sensors for each lockers
-		for i := range lockers {
+		for i := range lockerIds {
 
-			sensorIds, err := q.GetSensorsOfLocker(c, lockers[i])
+			sensorIds, err := q.GetSensorsOfLocker(c, lockerIds[i])
 			//fmt.Printf("Got sensors: %v of Locker: %v\n", sensorIds, lockers[i])
 			if err != nil {
 				return err
 			}
+			locker, err := q.GetLockerByLockerNumber(c, lockerIds[i])
+			if err != nil {
+				return err
+			}
 			res.Lockers = append(res.Lockers, Locker{
-				ID:    int64(lockers[i]),
-				Feeds: []Feed{},
+				ID:           int64(lockerIds[i]),
+				Location:     locker.Location,
+				LastAccessed: locker.LastAccessed,
+				LockStatus:   locker.LockStatus,
+				Feeds:        []Feed{},
 			})
 
 			for j := range sensorIds {

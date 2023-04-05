@@ -40,26 +40,24 @@ func (q *Queries) DeleteLocker(ctx context.Context, id int32) error {
 }
 
 const getLocker = `-- name: GetLocker :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE id = ?
+SELECT locker_number, location, last_accessed FROM lockers WHERE id = ?
 `
 
-func (q *Queries) GetLocker(ctx context.Context, id int32) (Locker, error) {
+type GetLockerRow struct {
+	LockerNumber int32        `json:"lockerNumber"`
+	Location     string       `json:"location"`
+	LastAccessed sql.NullTime `json:"lastAccessed"`
+}
+
+func (q *Queries) GetLocker(ctx context.Context, id int32) (GetLockerRow, error) {
 	row := q.queryRow(ctx, q.getLockerStmt, getLocker, id)
-	var i Locker
-	err := row.Scan(
-		&i.ID,
-		&i.LockerNumber,
-		&i.Location,
-		&i.Status,
-		&i.NfcSig,
-		&i.CreatedAt,
-		&i.LastModified,
-	)
+	var i GetLockerRow
+	err := row.Scan(&i.LockerNumber, &i.Location, &i.LastAccessed)
 	return i, err
 }
 
 const getLockerByLockerNumber = `-- name: GetLockerByLockerNumber :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = ?
+SELECT id, locker_number, location, status, nfc_sig, last_accessed, lock_status, created_at, last_modified FROM lockers WHERE locker_number = ?
 `
 
 func (q *Queries) GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error) {
@@ -71,6 +69,8 @@ func (q *Queries) GetLockerByLockerNumber(ctx context.Context, lockerNumber int3
 		&i.Location,
 		&i.Status,
 		&i.NfcSig,
+		&i.LastAccessed,
+		&i.LockStatus,
 		&i.CreatedAt,
 		&i.LastModified,
 	)
@@ -78,7 +78,7 @@ func (q *Queries) GetLockerByLockerNumber(ctx context.Context, lockerNumber int3
 }
 
 const getLockerByLockerNumberAndLocation = `-- name: GetLockerByLockerNumberAndLocation :one
-SELECT id, locker_number, location, status, nfc_sig, created_at, last_modified FROM lockers WHERE locker_number = ? AND location = ?
+SELECT id, locker_number, location, status, nfc_sig, last_accessed, lock_status, created_at, last_modified FROM lockers WHERE locker_number = ? AND location = ?
 `
 
 type GetLockerByLockerNumberAndLocationParams struct {
@@ -95,6 +95,8 @@ func (q *Queries) GetLockerByLockerNumberAndLocation(ctx context.Context, arg Ge
 		&i.Location,
 		&i.Status,
 		&i.NfcSig,
+		&i.LastAccessed,
+		&i.LockStatus,
 		&i.CreatedAt,
 		&i.LastModified,
 	)

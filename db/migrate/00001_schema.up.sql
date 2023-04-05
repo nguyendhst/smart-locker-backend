@@ -4,6 +4,8 @@ CREATE TABLE `lockers` (
   `location` varchar(255) NOT NULL,
   `status` ENUM ('used', 'available', 'malfunction') NOT NULL,
   `nfc_sig` varchar(255) NOT NULL,
+  `last_accessed` datetime DEFAULT (now()),
+  `lock_status` ENUM ('locked', 'unlocked') NOT NULL DEFAULT 'locked',
   `created_at` datetime DEFAULT (now()),
   `last_modified` datetime DEFAULT (now())
 );

@@ -61,18 +61,18 @@ func NewAlert() error {
 	return nil
 }
 
-func (p *Payload) UnmarshalJSON(b []byte) error {
-	type Alias Payload
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(p),
-	}
-	if err := json.Unmarshal(b, &aux); err != nil {
-		return err
-	}
-	return nil
-}
+//func (p *Payload) UnmarshalJSON(b []byte) error {
+//	type Alias Payload
+//	aux := &struct {
+//		*Alias
+//	}{
+//		Alias: (*Alias)(p),
+//	}
+//	if err := json.Unmarshal(b, &aux); err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 func (m *Alert) Start(ctx context.Context, cfg *swagger.Configuration) {
 	go m.startTempAlert(ctx)

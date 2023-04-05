@@ -10,6 +10,48 @@ import (
 	"fmt"
 )
 
+type LockersLockStatus string
+
+const (
+	LockersLockStatusLocked   LockersLockStatus = "locked"
+	LockersLockStatusUnlocked LockersLockStatus = "unlocked"
+)
+
+func (e *LockersLockStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LockersLockStatus(s)
+	case string:
+		*e = LockersLockStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LockersLockStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLockersLockStatus struct {
+	LockersLockStatus LockersLockStatus
+	Valid             bool // Valid is true if LockersLockStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLockersLockStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LockersLockStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LockersLockStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLockersLockStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.LockersLockStatus, nil
+}
+
 type LockersStatus string
 
 const (
@@ -141,13 +183,15 @@ func (ns NullUsersRole) Value() (driver.Value, error) {
 }
 
 type Locker struct {
-	ID           int32         `json:"id"`
-	LockerNumber int32         `json:"lockerNumber"`
-	Location     string        `json:"location"`
-	Status       LockersStatus `json:"status"`
-	NfcSig       string        `json:"nfcSig"`
-	CreatedAt    sql.NullTime  `json:"createdAt"`
-	LastModified sql.NullTime  `json:"lastModified"`
+	ID           int32             `json:"id"`
+	LockerNumber int32             `json:"lockerNumber"`
+	Location     string            `json:"location"`
+	Status       LockersStatus     `json:"status"`
+	NfcSig       string            `json:"nfcSig"`
+	LastAccessed sql.NullTime      `json:"lastAccessed"`
+	LockStatus   LockersLockStatus `json:"lockStatus"`
+	CreatedAt    sql.NullTime      `json:"createdAt"`
+	LastModified sql.NullTime      `json:"lastModified"`
 }
 
 type LockerSensor struct {

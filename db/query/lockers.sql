@@ -1,5 +1,5 @@
 -- name: GetLocker :one
-SELECT * FROM lockers WHERE id = ?;
+SELECT locker_number, location, last_accessed FROM lockers WHERE id = ?;
 
 -- name: GetLockerByNfcSig :one
 SELECT id FROM lockers WHERE nfc_sig = ?;
