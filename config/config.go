@@ -45,20 +45,6 @@ func _loadConfigFile() (*Config, error) {
 	var config Config = Config{}
 
 	stdLogger = utils.NewLogger("Config")
-	// Open the configuration file.
-	//file, err := os.Open("config.json")
-	//if err != nil {
-	//	return nil, fmt.Errorf("error opening config file: %s", err)
-	//}
-	//defer file.Close()
-	//// DEBUG -- print content of config file
-	//data, _ := io.ReadAll(file)
-	// log.Println(string(data))
-	// Read the configuration file.
-	//err = json.Unmarshal(data, &config)
-	//if err != nil {
-	//	return nil, fmt.Errorf("error decoding config file: %s", err)
-	//}
 
 	config.Port = os.Getenv("PORT")
 	config.DSN = os.Getenv("PLANETSCALE_URL")

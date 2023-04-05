@@ -27,7 +27,8 @@ func (s *Server) fcmPing(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	a, err := alert.NewAlert()
+	//a, err := alert.NewAlert()
+	err := alert.NewAlert()
 
 	if err != nil {
 		fmt.Println(err)
@@ -35,7 +36,7 @@ func (s *Server) fcmPing(c echo.Context) error {
 	}
 
 	ctx := context.Background()
-	client, err := a.FirebaseApp.Messaging(ctx)
+	client, err := alert.Alerter.FirebaseApp.Messaging(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, err)

@@ -69,10 +69,9 @@ func NewServer() (*Server, error) {
 		return nil, err
 	} else if mqttClient, err = _initMqttClient(db, config); err != nil {
 		return nil, err
+	} else if err = _initMonitor(config); err != nil {
+		return nil, err
 	}
-	//} else if monitor, err = _initMonitor(config); err != nil {
-	//	return nil, err
-	//}
 
 	e := echo.New()
 
@@ -245,7 +244,7 @@ func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, er
 			if err := mqttClient.Subscribe(
 				fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
 				mqttclient.QOS_0,
-				mqttclient.TemperatureFeedCallback); err != nil {
+				alert.TemperatureFeedCallback); err != nil {
 				return nil, err
 			}
 		case "moisture":
@@ -267,9 +266,9 @@ func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, er
 	return mqttClient, nil
 }
 
-//func _initMonitor(config *config.Config) (*alert.Alert, error) {
-//	return alert.NewAlert()
-//}
+func _initMonitor(config *config.Config) error {
+	return alert.NewAlert()
+}
 
 // helloworld api endpoints used for testing purposes
 func _helloWorld(c echo.Context) error {

@@ -2,6 +2,7 @@ package alert
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"smart-locker/backend/fcm"
@@ -13,10 +14,16 @@ import (
 	firebase "firebase.google.com/go/v4"
 )
 
+const (
+	TEMP_THRESHOLD = 65.0
+	MOIS_THRESHOLD = 0.0
+)
+
 var (
-	// temporary
-	feedkeys      = []string{"locker1-temperature", "locker2-temperature"}
 	ErrorAnalysis = fmt.Errorf("Analysis Error")
+
+	// global alerter
+	Alerter *Alert
 )
 
 type (
@@ -24,17 +31,47 @@ type (
 		FirebaseApp *firebase.App
 		tempChan    chan float32
 	}
+
+	Payload struct {
+		Id        uint64 `json:"id"`
+		LastValue string `json:"last_value"`
+		UpdatedAt string `json:"updated_at"`
+		Key       string `json:"key"`
+		Data      Data   `json:"data"`
+	}
+
+	Data struct {
+		CreatedAt string `json:"created_at"`
+		Value     string `json:"value"`
+		Location  string `json:"location"`
+		Id        string `json:"id"`
+	}
 )
 
-func NewAlert() (*Alert, error) {
+func NewAlert() error {
 	app, err := fcm.NewClient()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &Alert{
+	Alerter = &Alert{
 		FirebaseApp: app,
 		tempChan:    make(chan float32),
-	}, nil
+	}
+
+	return nil
+}
+
+func (p *Payload) UnmarshalJSON(b []byte) error {
+	type Alias Payload
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(p),
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Alert) Start(ctx context.Context, cfg *swagger.Configuration) {
@@ -54,37 +91,48 @@ func (m *Alert) AnalyzeTemp(temp [][]string) {
 	}
 
 	fmt.Printf("Recorded temperature: %f\n", values)
-
-	// check if no temp is above 65
-	//for _, v := range values {
-	//	if v > 65 {
-	//		m.SendTempAlert(float32(v))
-	//		return
-	//	}
-	//}
-
-	//// detect sudden change in temperature
-	//mean, err := stats.Mean(values)
-	//if err != nil {
-	//	log.Println(ErrorAnalysis, err)
-	//}
-	//fmt.Printf("Mean temperature: %f\n", mean)
-
-	//stdDev, err := stats.StandardDeviationPopulation(values)
-	//if err != nil {
-	//	log.Println(ErrorAnalysis, err)
-	//}
-
-	//// find outliers (https://en.wikipedia.org/wiki/Chauvenet%27s_criterion)
-	//{
-	//	p := 1 - 1/float64(len(values)) // p is probability represented by one tail of the normal distribution
-	//	dmax := 1.0 / (2 * float64(len(values))) * (1 - p)
-	//}
-
 }
 
-func TemperatureHandler(client mqtt.Client, msg mqtt.Message) {
+func ParsePayload(data []byte) (*Payload, error) {
+	var payload = Payload{}
+	err := json.Unmarshal(data, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &payload, nil
+}
+
+func TemperatureFeedCallback(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message on topic: %s\nMessage: %s\n", msg.Topic(), msg.Payload())
+
+	// if temp is above threshold, send alert
+	// parse payload
+
+	//payload, err := json.Marshal(msg.Payload())
+	//if err != nil {
+	//	log.Println("Error parsing payload", err)
+	//}
+
+	parsed, err := ParsePayload(msg.Payload())
+	if err != nil {
+		log.Println("Error parsing payload", err)
+	}
+	// field is last_value
+	lastValue := parsed.LastValue
+	fmt.Println("Last value:", lastValue)
+
+	// try to convert to float64
+	val, err := strconv.ParseFloat(lastValue, 64)
+	if err != nil {
+		log.Println("Error parsing payload", err)
+	}
+
+	// send alert
+	if val > TEMP_THRESHOLD {
+		Alerter.SendTempAlert(float32(val))
+	}
+
 }
 
 func (m *Alert) startTempAlert(ctx context.Context) {
