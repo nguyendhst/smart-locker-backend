@@ -2,7 +2,7 @@
 SELECT locker_number, location, last_accessed FROM lockers WHERE id = ?;
 
 -- name: GetLockerByNfcSig :one
-SELECT id FROM lockers WHERE nfc_sig = ?;
+SELECT id, lock_status FROM lockers WHERE nfc_sig = ?;
 
 -- name: GetLockerByLockerNumber :one
 SELECT * FROM lockers WHERE locker_number = ?;
@@ -24,3 +24,6 @@ UPDATE lockers SET nfc_sig = ? WHERE id = ?;
 
 -- name: DeleteLocker :exec
 DELETE FROM lockers WHERE id = ?;
+
+-- name: UpdateLockStatus :execresult
+UPDATE lockers SET lock_status = ? WHERE id = ?;

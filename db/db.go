@@ -19,6 +19,7 @@ type (
 		ExecGetAllUserFeedsTx(context.Context, GetAllUserFeedsParams) (GetAllUserFeedsResult, error)
 		ExecGetFeedByNFCSigTx(context.Context, GetFeedByNFCSigParams) (GetFeedByNFCSigResult, error)
 		ExecGetAllSensorDataTx(context.Context, GetAllSensorDataParams) (GetAllSensorDataResult, error)
+		ExecUpdateLockStatusTx(context.Context, UpdateLockStatusParams) (UpdateLockStatusResult, error)
 	}
 
 	// Tx is the database transaction. It implements the DB interface.

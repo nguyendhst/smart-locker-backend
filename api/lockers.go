@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"smart-locker/backend/db"
+	"smart-locker/backend/db/sqlc"
 
 	"github.com/antihax/optional"
 	"github.com/labstack/echo/v4"
@@ -48,7 +49,7 @@ func (s *Server) unlockLocker(c echo.Context) error {
 		NFCSig: unlockReq.NFCSig,
 	}
 
-	feed, err := s.Store.ExecGetFeedByNFCSigTx(
+	lock, err := s.Store.ExecGetFeedByNFCSigTx(
 		context.Background(),
 		params,
 	)
@@ -61,7 +62,7 @@ func (s *Server) unlockLocker(c echo.Context) error {
 	resp, httpResp, err := s.AdafruitClient.DataApi.LastData(
 		context.Background(),
 		s.Config.AdafruitUsername,
-		feed.Feedkey,
+		lock.Feedkey,
 		&swagger.DataApiLastDataOpts{
 			Include: optional.NewString("value,created_at"),
 		},
@@ -69,16 +70,42 @@ func (s *Server) unlockLocker(c echo.Context) error {
 	if err != nil || httpResp.StatusCode != http.StatusOK {
 		log.Print(err)
 		return c.JSON(http.StatusInternalServerError, err)
-	} else if resp.Value == "0" {
+	}
+
+	log.Print("lock stat", lock.RegisteredLockStatus)
+
+	//if (resp.Value == "0" && lock.RegisteredLockStatus != "unlocked") || (resp.Value == "1" && lock.RegisteredLockStatus != "locked") {
+	//	defer syncLockerState(s, lock, resp.Value)
+	//	return c.JSON(http.StatusConflict, UnlockResponse{
+	//		Status: "State conflict",
+	//	})
+	//}
+
+	if resp.Value == "0" {
 		return c.JSON(http.StatusAlreadyReported, UnlockResponse{
 			Status: "Already unlocked",
 		})
 	}
 
+	// update the DB
+
+	_, err = s.Store.ExecUpdateLockStatusTx(
+		context.Background(),
+		db.UpdateLockStatusParams{
+			Status: sqlc.LockersLockStatusUnlocked,
+			Id:     lock.LockerId,
+		},
+	)
+
+	if err != nil {
+		log.Print(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	_, httpResp, err = s.AdafruitClient.DataApi.CreateData(
 		context.Background(),
 		s.Config.AdafruitUsername,
-		feed.Feedkey,
+		lock.Feedkey,
 		swagger.Datum{
 			Value: "0",
 		},
@@ -106,7 +133,7 @@ func (s *Server) lockLocker(c echo.Context) error {
 		NFCSig: lockReq.NFCSig,
 	}
 
-	feed, err := s.Store.ExecGetFeedByNFCSigTx(
+	lock, err := s.Store.ExecGetFeedByNFCSigTx(
 		context.Background(),
 		params,
 	)
@@ -115,28 +142,55 @@ func (s *Server) lockLocker(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	// check if already locked
+	// ping the adafruit server to check if already locked
 	resp, httpResp, err := s.AdafruitClient.DataApi.LastData(
 		context.Background(),
 		s.Config.AdafruitUsername,
-		feed.Feedkey,
+		lock.Feedkey,
 		&swagger.DataApiLastDataOpts{
 			Include: optional.NewString("value,created_at"),
 		},
 	)
+
+	// compare to the registered state
+
 	if err != nil || httpResp.StatusCode != http.StatusOK {
 		log.Print(err)
 		return c.JSON(http.StatusInternalServerError, err)
-	} else if resp.Value == "1" {
+	}
+
+	log.Print("Lock stat:", lock.RegisteredLockStatus)
+
+	//if (resp.Value == "1" && lock.RegisteredLockStatus != "locked") || (resp.Value == "0" && lock.RegisteredLockStatus != "unlocked") {
+	//	defer syncLockerState(s, lock, resp.Value)
+	//	return c.JSON(http.StatusConflict, LockResponse{
+	//		Status: "State conflict",
+	//	})
+	//}
+
+	if resp.Value == "1" {
 		return c.JSON(http.StatusAlreadyReported, LockResponse{
 			Status: "Already locked",
 		})
 	}
 
+	_, err = s.Store.ExecUpdateLockStatusTx(
+		context.Background(),
+		db.UpdateLockStatusParams{
+			Status: sqlc.LockersLockStatusLocked,
+			Id:     lock.LockerId,
+		},
+	)
+
+	if err != nil {
+		log.Print(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	_, httpResp, err = s.AdafruitClient.DataApi.CreateData(
 		context.Background(),
 		s.Config.AdafruitUsername,
-		feed.Feedkey,
+		lock.Feedkey,
 		swagger.Datum{
 			Value: "1",
 		},
@@ -150,4 +204,19 @@ func (s *Server) lockLocker(c echo.Context) error {
 	return c.JSON(http.StatusOK, LockResponse{
 		Status: "Locked",
 	})
+}
+
+func syncLockerState(s *Server, lock db.GetFeedByNFCSigResult, state string) {
+	_, httpResp, err := s.AdafruitClient.DataApi.CreateData(
+		context.Background(),
+		s.Config.AdafruitUsername,
+		lock.Feedkey,
+		swagger.Datum{
+			Value: state,
+		},
+	)
+
+	if err != nil || httpResp.StatusCode != http.StatusOK {
+		log.Print(err)
+	}
 }

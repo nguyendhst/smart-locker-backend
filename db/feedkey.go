@@ -13,7 +13,9 @@ type (
 	}
 
 	GetFeedByNFCSigResult struct {
-		Feedkey string
+		Feedkey              string
+		RegisteredLockStatus string
+		LockerId             int32
 	}
 )
 
@@ -21,6 +23,7 @@ func (t *Tx) ExecGetFeedByNFCSigTx(c context.Context, arg GetFeedByNFCSigParams)
 
 	var res GetFeedByNFCSigResult
 	var lockerId int32
+	//var lockerStat sqlc.LockersLockStatus
 	var sensorIds []int32
 
 	err := t.executeTx(c, func(q *sqlc.Queries) error {
@@ -31,7 +34,9 @@ func (t *Tx) ExecGetFeedByNFCSigTx(c context.Context, arg GetFeedByNFCSigParams)
 			log.Println("error: ", err)
 			return err
 		}
-		lockerId = locker
+		lockerId = locker.ID
+		res.LockerId = lockerId
+		res.RegisteredLockStatus = string(locker.LockStatus)
 
 		return nil
 	})
