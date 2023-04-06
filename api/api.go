@@ -75,6 +75,11 @@ func NewServer() (*Server, error) {
 
 	e := echo.New()
 
+	// gzip middleware
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
+
 	// instantiate loggin middleware
 	// ripped straight from the docs
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -254,7 +259,7 @@ func _initMqttClient(store db.DB, config *config.Config) (*mqttclient.Client, er
 				mqttclient.MoistureFeedCallback); err != nil {
 				return nil, err
 			}
-		case "lock":
+		case "servo":
 			if err := mqttClient.Subscribe(
 				fmt.Sprintf("%s/feeds/%s/json", config.AdafruitUsername, sensor.FeedKey),
 				mqttclient.QOS_0,
