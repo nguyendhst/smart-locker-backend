@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TEMP_THRESHOLD = 65.0
+	TEMP_THRESHOLD = 29.0
 	MOIS_THRESHOLD = 0.0
 )
 
@@ -123,7 +123,7 @@ func TemperatureFeedCallback(client mqtt.Client, msg mqtt.Message) {
 	fmt.Println("Last value:", lastValue)
 
 	// try to convert to float64
-	val, err := strconv.ParseFloat(lastValue, 64)
+	val, err := strconv.ParseFloat(lastValue, 32)
 	if err != nil {
 		log.Println("Error parsing payload", err)
 	}
