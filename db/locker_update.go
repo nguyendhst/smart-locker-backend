@@ -26,11 +26,7 @@ func (t *Tx) ExecUpdateLockStatusTx(c context.Context, arg UpdateLockStatusParam
 			ID:         arg.Id,
 		})
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	})
 	if err != nil {
 		return res, err

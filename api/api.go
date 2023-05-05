@@ -32,6 +32,7 @@ var (
 		"/api/lockers/lock",
 		"/api/lockers/unlock",
 		"/api/tester/fcm/ping",
+		"/api/lockers/info/all",
 	}
 	//{your Adafruit IO username}/feeds/{feed key}
 
@@ -184,17 +185,31 @@ func _initApi(s *Server, e *echo.Echo) error {
 	}
 
 	// restricted endpoints
-	restricted := s.Router.Group("/api/feeds")
+	restricted_feeds := s.Router.Group("/api/feeds")
 	{
-		restricted.Use(echojwt.WithConfig(echojwt.Config{
+		restricted_feeds.Use(echojwt.WithConfig(echojwt.Config{
 			SigningKey: []byte("secret"),
 			NewClaimsFunc: func(c echo.Context) jwt.Claims {
 				return new(token.Payload)
 			},
 		}))
 
-		restricted.GET("/all", s.getAllFeed)
+		restricted_feeds.GET("/all", s.getAllFeed)
 
+	}
+
+	restricted_lockers := s.Router.Group("/api/lockers")
+	{
+		restricted_lockers.Use(echojwt.WithConfig(echojwt.Config{
+			SigningKey: []byte("secret"),
+			NewClaimsFunc: func(c echo.Context) jwt.Claims {
+				return new(token.Payload)
+			},
+		}))
+
+		restricted_lockers.GET("/info/all", s.getAllLockersInfo)
+		restricted_lockers.POST("/new", s.createLocker)
+		restricted_lockers.POST("/remove", s.removeLocker)
 	}
 	return nil
 }
