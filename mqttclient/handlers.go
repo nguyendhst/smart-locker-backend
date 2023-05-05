@@ -16,9 +16,9 @@ func SensorFeedCallback(client mqtt.Client, msg mqtt.Message) {
 
 }
 
-func TemperatureFeedCallback(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Received message on topic: %s\nMessage: %s\n", msg.Topic(), msg.Payload())
-}
+//func TemperatureFeedCallback(client mqtt.Client, msg mqtt.Message) {
+//	fmt.Printf("Received message on topic: %s\nMessage: %s\n", msg.Topic(), msg.Payload())
+//}
 
 func MoistureFeedCallback(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("Received message on topic: %s\nMessage: %s\n", msg.Topic(), msg.Payload())

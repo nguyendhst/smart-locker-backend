@@ -14,13 +14,14 @@ const (
 	port_secure = "8883"
 	keepalive   = 60 * time.Second
 )
-
-var (
+const (
 	// QoS
 	QOS_0 = byte(0)
 	QOS_1 = byte(1)
 	QOS_2 = byte(2)
+)
 
+var (
 	// Feeds
 	FeedTopics = []string{}
 )
