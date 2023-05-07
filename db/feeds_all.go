@@ -13,6 +13,7 @@ type (
 		Location     string                 `json:"location"`
 		LastAccessed sql.NullTime           `json:"last_accessed,omitempty"`
 		LockStatus   sqlc.LockersLockStatus `json:"lock_status"`
+		NFCSig       string                 `json:"nfc_sig"`
 		Feeds        []Feed                 `json:"feeds"`
 	}
 	Feed struct {
@@ -66,6 +67,7 @@ func (t *Tx) ExecGetAllUserFeedsTx(c context.Context, arg GetAllUserFeedsParams)
 				Location:     locker.Location,
 				LastAccessed: locker.LastAccessed,
 				LockStatus:   locker.LockStatus,
+				NFCSig:       locker.NfcSig,
 				Feeds:        []Feed{},
 			})
 
