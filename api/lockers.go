@@ -279,6 +279,10 @@ func (s *Server) createLocker(c echo.Context) error {
 		Location:     req.Location,
 		NfcSig:       req.NFCSig,
 	}
+	// fields must not empty
+	if params.LockerNumber == 0 || params.Location == "" || params.NfcSig == "" {
+		return c.JSON(http.StatusBadRequest, "fields must not be empty")
+	}
 
 	_, err := s.Store.ExecCreateLockerTx(
 		context.Background(),
