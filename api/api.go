@@ -209,7 +209,7 @@ func _initApi(s *Server, e *echo.Echo) error {
 
 		restricted_lockers.GET("/info/all", s.getAllLockersInfo)
 		restricted_lockers.POST("/_dev/insert", s.createLocker)
-		restricted_lockers.POST("/remove", s.removeLocker)
+		restricted_lockers.POST("/unpair", s.removeLocker)
 		restricted_lockers.POST("/pairing", s.registerLocker)
 	}
 	return nil

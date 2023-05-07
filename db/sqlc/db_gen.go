@@ -45,11 +45,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteLockerUserStmt, err = db.PrepareContext(ctx, deleteLockerUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteLockerUser: %w", err)
 	}
+	if q.deleteLockerUserFromUserIDAndLockerIDStmt, err = db.PrepareContext(ctx, deleteLockerUserFromUserIDAndLockerID); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteLockerUserFromUserIDAndLockerID: %w", err)
+	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
 	if q.getAllSensorsStmt, err = db.PrepareContext(ctx, getAllSensors); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAllSensors: %w", err)
+	}
+	if q.getEntryFromUserIDAndLockerIDStmt, err = db.PrepareContext(ctx, getEntryFromUserIDAndLockerID); err != nil {
+		return nil, fmt.Errorf("error preparing query GetEntryFromUserIDAndLockerID: %w", err)
 	}
 	if q.getLockerStmt, err = db.PrepareContext(ctx, getLocker); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLocker: %w", err)
@@ -136,6 +142,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteLockerUserStmt: %w", cerr)
 		}
 	}
+	if q.deleteLockerUserFromUserIDAndLockerIDStmt != nil {
+		if cerr := q.deleteLockerUserFromUserIDAndLockerIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteLockerUserFromUserIDAndLockerIDStmt: %w", cerr)
+		}
+	}
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
@@ -144,6 +155,11 @@ func (q *Queries) Close() error {
 	if q.getAllSensorsStmt != nil {
 		if cerr := q.getAllSensorsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAllSensorsStmt: %w", cerr)
+		}
+	}
+	if q.getEntryFromUserIDAndLockerIDStmt != nil {
+		if cerr := q.getEntryFromUserIDAndLockerIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getEntryFromUserIDAndLockerIDStmt: %w", cerr)
 		}
 	}
 	if q.getLockerStmt != nil {
@@ -258,47 +274,51 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                                     DBTX
-	tx                                     *sql.Tx
-	createLockerStmt                       *sql.Stmt
-	createLockerUserStmt                   *sql.Stmt
-	createSensorStmt                       *sql.Stmt
-	createSensorLockerStmt                 *sql.Stmt
-	createUserStmt                         *sql.Stmt
-	deleteLockerStmt                       *sql.Stmt
-	deleteLockerUserStmt                   *sql.Stmt
-	deleteUserStmt                         *sql.Stmt
-	getAllSensorsStmt                      *sql.Stmt
-	getLockerStmt                          *sql.Stmt
-	getLockerByLockerNumberStmt            *sql.Stmt
-	getLockerByLockerNumberAndLocationStmt *sql.Stmt
-	getLockerByNfcSigStmt                  *sql.Stmt
-	getLockersOfUserStmt                   *sql.Stmt
-	getSensorByIdStmt                      *sql.Stmt
-	getSensorsByTypeStmt                   *sql.Stmt
-	getSensorsOfLockerStmt                 *sql.Stmt
-	getUserByEmailStmt                     *sql.Stmt
-	updateLockStatusStmt                   *sql.Stmt
-	updateLockerStmt                       *sql.Stmt
-	updateLockerNfcSigStmt                 *sql.Stmt
-	updateLockerStatusStmt                 *sql.Stmt
-	updateLockerUserStmt                   *sql.Stmt
-	updateUserStmt                         *sql.Stmt
+	db                                        DBTX
+	tx                                        *sql.Tx
+	createLockerStmt                          *sql.Stmt
+	createLockerUserStmt                      *sql.Stmt
+	createSensorStmt                          *sql.Stmt
+	createSensorLockerStmt                    *sql.Stmt
+	createUserStmt                            *sql.Stmt
+	deleteLockerStmt                          *sql.Stmt
+	deleteLockerUserStmt                      *sql.Stmt
+	deleteLockerUserFromUserIDAndLockerIDStmt *sql.Stmt
+	deleteUserStmt                            *sql.Stmt
+	getAllSensorsStmt                         *sql.Stmt
+	getEntryFromUserIDAndLockerIDStmt         *sql.Stmt
+	getLockerStmt                             *sql.Stmt
+	getLockerByLockerNumberStmt               *sql.Stmt
+	getLockerByLockerNumberAndLocationStmt    *sql.Stmt
+	getLockerByNfcSigStmt                     *sql.Stmt
+	getLockersOfUserStmt                      *sql.Stmt
+	getSensorByIdStmt                         *sql.Stmt
+	getSensorsByTypeStmt                      *sql.Stmt
+	getSensorsOfLockerStmt                    *sql.Stmt
+	getUserByEmailStmt                        *sql.Stmt
+	updateLockStatusStmt                      *sql.Stmt
+	updateLockerStmt                          *sql.Stmt
+	updateLockerNfcSigStmt                    *sql.Stmt
+	updateLockerStatusStmt                    *sql.Stmt
+	updateLockerUserStmt                      *sql.Stmt
+	updateUserStmt                            *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                                     tx,
-		tx:                                     tx,
-		createLockerStmt:                       q.createLockerStmt,
-		createLockerUserStmt:                   q.createLockerUserStmt,
-		createSensorStmt:                       q.createSensorStmt,
-		createSensorLockerStmt:                 q.createSensorLockerStmt,
-		createUserStmt:                         q.createUserStmt,
-		deleteLockerStmt:                       q.deleteLockerStmt,
-		deleteLockerUserStmt:                   q.deleteLockerUserStmt,
+		db:                     tx,
+		tx:                     tx,
+		createLockerStmt:       q.createLockerStmt,
+		createLockerUserStmt:   q.createLockerUserStmt,
+		createSensorStmt:       q.createSensorStmt,
+		createSensorLockerStmt: q.createSensorLockerStmt,
+		createUserStmt:         q.createUserStmt,
+		deleteLockerStmt:       q.deleteLockerStmt,
+		deleteLockerUserStmt:   q.deleteLockerUserStmt,
+		deleteLockerUserFromUserIDAndLockerIDStmt: q.deleteLockerUserFromUserIDAndLockerIDStmt,
 		deleteUserStmt:                         q.deleteUserStmt,
 		getAllSensorsStmt:                      q.getAllSensorsStmt,
+		getEntryFromUserIDAndLockerIDStmt:      q.getEntryFromUserIDAndLockerIDStmt,
 		getLockerStmt:                          q.getLockerStmt,
 		getLockerByLockerNumberStmt:            q.getLockerByLockerNumberStmt,
 		getLockerByLockerNumberAndLocationStmt: q.getLockerByLockerNumberAndLocationStmt,

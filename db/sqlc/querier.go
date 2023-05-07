@@ -17,8 +17,10 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
 	DeleteLocker(ctx context.Context, id int32) error
 	DeleteLockerUser(ctx context.Context, id int32) error
+	DeleteLockerUserFromUserIDAndLockerID(ctx context.Context, arg DeleteLockerUserFromUserIDAndLockerIDParams) (sql.Result, error)
 	DeleteUser(ctx context.Context, id int32) error
 	GetAllSensors(ctx context.Context) ([]GetAllSensorsRow, error)
+	GetEntryFromUserIDAndLockerID(ctx context.Context, arg GetEntryFromUserIDAndLockerIDParams) (GetEntryFromUserIDAndLockerIDRow, error)
 	GetLocker(ctx context.Context, id int32) (GetLockerRow, error)
 	GetLockerByLockerNumber(ctx context.Context, lockerNumber int32) (Locker, error)
 	GetLockerByLockerNumberAndLocation(ctx context.Context, arg GetLockerByLockerNumberAndLocationParams) (Locker, error)

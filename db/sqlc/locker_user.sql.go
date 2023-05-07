@@ -32,6 +32,41 @@ func (q *Queries) DeleteLockerUser(ctx context.Context, id int32) error {
 	return err
 }
 
+const deleteLockerUserFromUserIDAndLockerID = `-- name: DeleteLockerUserFromUserIDAndLockerID :execresult
+DELETE FROM locker_user WHERE user_id = ? AND locker_id = ?
+`
+
+type DeleteLockerUserFromUserIDAndLockerIDParams struct {
+	UserID   int32 `json:"userID"`
+	LockerID int32 `json:"lockerID"`
+}
+
+func (q *Queries) DeleteLockerUserFromUserIDAndLockerID(ctx context.Context, arg DeleteLockerUserFromUserIDAndLockerIDParams) (sql.Result, error) {
+	return q.exec(ctx, q.deleteLockerUserFromUserIDAndLockerIDStmt, deleteLockerUserFromUserIDAndLockerID, arg.UserID, arg.LockerID)
+}
+
+const getEntryFromUserIDAndLockerID = `-- name: GetEntryFromUserIDAndLockerID :one
+SELECT id, user_id, locker_id FROM locker_user WHERE user_id = ? AND locker_id = ?
+`
+
+type GetEntryFromUserIDAndLockerIDParams struct {
+	UserID   int32 `json:"userID"`
+	LockerID int32 `json:"lockerID"`
+}
+
+type GetEntryFromUserIDAndLockerIDRow struct {
+	ID       int32 `json:"id"`
+	UserID   int32 `json:"userID"`
+	LockerID int32 `json:"lockerID"`
+}
+
+func (q *Queries) GetEntryFromUserIDAndLockerID(ctx context.Context, arg GetEntryFromUserIDAndLockerIDParams) (GetEntryFromUserIDAndLockerIDRow, error) {
+	row := q.queryRow(ctx, q.getEntryFromUserIDAndLockerIDStmt, getEntryFromUserIDAndLockerID, arg.UserID, arg.LockerID)
+	var i GetEntryFromUserIDAndLockerIDRow
+	err := row.Scan(&i.ID, &i.UserID, &i.LockerID)
+	return i, err
+}
+
 const getLockersOfUser = `-- name: GetLockersOfUser :many
 SELECT locker_id FROM locker_user WHERE user_id = ?
 `

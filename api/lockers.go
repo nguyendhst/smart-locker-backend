@@ -60,6 +60,7 @@ type (
 	}
 
 	RemoveLockerRequest struct {
+		NFCSig string `json:"nfc_sig"`
 	}
 
 	RemoveLockerResponse struct {
@@ -350,7 +351,37 @@ func (s *Server) registerLocker(c echo.Context) error {
 }
 
 func (s *Server) removeLocker(c echo.Context) error {
-	panic("TODO")
+
+	var req RemoveLockerRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	// Execute the query.
+	// Get the email from the set context from jwt middleware
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*token.Payload)
+	email := claims.Email
+
+	params := db.RemoveLockerParams{
+		NFCSig:    req.NFCSig,
+		UserEmail: email,
+	}
+
+	_, err := s.Store.ExecRemoveLockerTx(
+		context.Background(),
+		params,
+	)
+
+	if err != nil {
+		log.Print(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, RemoveLockerResponse{
+		Status: "Locker removed",
+	})
+
 }
 
 func (s *Server) getAllLockersInfo(c echo.Context) error {

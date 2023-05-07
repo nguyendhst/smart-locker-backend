@@ -23,7 +23,7 @@ type (
 	}
 
 	RemoveLockerParams struct {
-		ID        int32
+		NFCSig    string
 		UserEmail string
 	}
 
@@ -141,6 +141,19 @@ func (t *Tx) ExecRegisterLockerTx(c context.Context, args RegisterLockerParams) 
 			return err
 		}
 
+		// check if entry already exists
+		//dup, err := q.GetEntryFromUserIDAndLockerID(
+		//	c,
+		//	sqlc.GetEntryFromUserIDAndLockerIDParams{
+		//		UserID:   int32(user.ID),
+		//		LockerID: int32(locker.ID),
+		//	},
+		//)
+
+		//if err != nil {
+		//	return err
+		//}
+
 		// create locker user
 		_, err = q.CreateLockerUser(c,
 			sqlc.CreateLockerUserParams{
@@ -167,6 +180,7 @@ func (t *Tx) ExecRegisterLockerTx(c context.Context, args RegisterLockerParams) 
 		}
 
 		res.Success = true
+
 		return err
 	})
 
@@ -181,9 +195,34 @@ func (t *Tx) ExecRemoveLockerTx(c context.Context, args RemoveLockerParams) (Rem
 
 		var err error
 
-		if err = q.DeleteLocker(c, args.ID); err != nil {
-			res.Success = false
+		// find user -> get user id
+		user, err := q.GetUserByEmail(
+			c,
+			args.UserEmail,
+		)
+
+		if err != nil {
+			return err
 		}
+
+		// find locker -> get locker id
+		locker, err := q.GetLockerByNfcSig(
+			c,
+			args.NFCSig,
+		)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = q.DeleteLockerUserFromUserIDAndLockerID(
+			c,
+			sqlc.DeleteLockerUserFromUserIDAndLockerIDParams{
+				UserID:   int32(user.ID),
+				LockerID: int32(locker.ID),
+			},
+		)
+
 		return err
 	})
 

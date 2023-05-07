@@ -9,3 +9,9 @@ UPDATE locker_user SET user_id = ?, locker_id = ? WHERE id = ?;
 
 -- name: DeleteLockerUser :exec
 DELETE FROM locker_user WHERE id = ?;
+
+-- name: GetEntryFromUserIDAndLockerID :one
+SELECT id, user_id, locker_id FROM locker_user WHERE user_id = ? AND locker_id = ?;
+
+-- name: DeleteLockerUserFromUserIDAndLockerID :execresult
+DELETE FROM locker_user WHERE user_id = ? AND locker_id = ?;
