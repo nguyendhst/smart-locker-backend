@@ -12,6 +12,8 @@ import (
 type Querier interface {
 	CreateLocker(ctx context.Context, arg CreateLockerParams) (sql.Result, error)
 	CreateLockerUser(ctx context.Context, arg CreateLockerUserParams) (sql.Result, error)
+	CreateSensor(ctx context.Context, arg CreateSensorParams) (sql.Result, error)
+	CreateSensorLocker(ctx context.Context, arg CreateSensorLockerParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
 	DeleteLocker(ctx context.Context, id int32) error
 	DeleteLockerUser(ctx context.Context, id int32) error

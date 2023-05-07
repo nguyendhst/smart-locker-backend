@@ -30,6 +30,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createLockerUserStmt, err = db.PrepareContext(ctx, createLockerUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateLockerUser: %w", err)
 	}
+	if q.createSensorStmt, err = db.PrepareContext(ctx, createSensor); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSensor: %w", err)
+	}
+	if q.createSensorLockerStmt, err = db.PrepareContext(ctx, createSensorLocker); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSensorLocker: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -103,6 +109,16 @@ func (q *Queries) Close() error {
 	if q.createLockerUserStmt != nil {
 		if cerr := q.createLockerUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createLockerUserStmt: %w", cerr)
+		}
+	}
+	if q.createSensorStmt != nil {
+		if cerr := q.createSensorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSensorStmt: %w", cerr)
+		}
+	}
+	if q.createSensorLockerStmt != nil {
+		if cerr := q.createSensorLockerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSensorLockerStmt: %w", cerr)
 		}
 	}
 	if q.createUserStmt != nil {
@@ -246,6 +262,8 @@ type Queries struct {
 	tx                                     *sql.Tx
 	createLockerStmt                       *sql.Stmt
 	createLockerUserStmt                   *sql.Stmt
+	createSensorStmt                       *sql.Stmt
+	createSensorLockerStmt                 *sql.Stmt
 	createUserStmt                         *sql.Stmt
 	deleteLockerStmt                       *sql.Stmt
 	deleteLockerUserStmt                   *sql.Stmt
@@ -274,6 +292,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                                     tx,
 		createLockerStmt:                       q.createLockerStmt,
 		createLockerUserStmt:                   q.createLockerUserStmt,
+		createSensorStmt:                       q.createSensorStmt,
+		createSensorLockerStmt:                 q.createSensorLockerStmt,
 		createUserStmt:                         q.createUserStmt,
 		deleteLockerStmt:                       q.deleteLockerStmt,
 		deleteLockerUserStmt:                   q.deleteLockerUserStmt,

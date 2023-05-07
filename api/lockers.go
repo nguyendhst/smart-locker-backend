@@ -65,6 +65,14 @@ type (
 	RemoveLockerResponse struct {
 		Status string `json:"status"`
 	}
+
+	RegisterLockerRequest struct {
+		NFCSig string `json:"nfc_sig"`
+	}
+
+	RegisterLockerResponse struct {
+		Status string `json:"status"`
+	}
 )
 
 // unlockLocker unlocks the locker.
@@ -282,8 +290,57 @@ func (s *Server) createLocker(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	// create new feed on adafruit
+	//_, httpResp, err := s.AdafruitClient.FeedsApi.CreateFeed(
+	//	context.Background(),
+	//	s.Config.AdafruitUsername,
+	//	swagger.Feed{
+	//		Name: "locker" + strconv.Itoa(int(req.LockerNumber)) + "-lock",
+	//	},
+	//	&swagger.FeedsApiCreateFeedOpts{},
+	//)
+
+	//if err != nil || httpResp.StatusCode != http.StatusOK {
+	//	log.Print(err)
+	//	return c.JSON(http.StatusInternalServerError, err)
+	//}
+
 	return c.JSON(http.StatusOK, CreateLockerResponse{
 		Status: "Locker created",
+	})
+
+}
+
+func (s *Server) registerLocker(c echo.Context) error {
+
+	var req RegisterLockerRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	// Execute the query.
+	// Get the email from the set context from jwt middleware
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*token.Payload)
+	email := claims.Email
+
+	params := db.RegisterLockerParams{
+		NFCSig:    req.NFCSig,
+		UserEmail: email,
+	}
+
+	_, err := s.Store.ExecRegisterLockerTx(
+		context.Background(),
+		params,
+	)
+
+	if err != nil {
+		log.Print(err)
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, RegisterLockerResponse{
+		Status: "Locker registered",
 	})
 
 }

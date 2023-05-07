@@ -7,7 +7,21 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
+
+const createSensor = `-- name: CreateSensor :execresult
+INSERT INTO sensors (feed_key, kind) VALUES (?, ?)
+`
+
+type CreateSensorParams struct {
+	FeedKey string      `json:"feedKey"`
+	Kind    SensorsKind `json:"kind"`
+}
+
+func (q *Queries) CreateSensor(ctx context.Context, arg CreateSensorParams) (sql.Result, error) {
+	return q.exec(ctx, q.createSensorStmt, createSensor, arg.FeedKey, arg.Kind)
+}
 
 const getAllSensors = `-- name: GetAllSensors :many
 SELECT id, feed_key, kind FROM sensors

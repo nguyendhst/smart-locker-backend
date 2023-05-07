@@ -6,3 +6,6 @@ SELECT id, feed_key FROM sensors WHERE kind = ?;
 
 -- name: GetAllSensors :many
 SELECT id, feed_key, kind FROM sensors;
+
+-- name: CreateSensor :execresult
+INSERT INTO sensors (feed_key, kind) VALUES (?, ?);

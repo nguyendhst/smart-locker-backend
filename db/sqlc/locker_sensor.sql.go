@@ -7,7 +7,21 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
+
+const createSensorLocker = `-- name: CreateSensorLocker :execresult
+INSERT INTO locker_sensor (locker_id, sensor_id) VALUES (?, ?)
+`
+
+type CreateSensorLockerParams struct {
+	LockerID int32 `json:"lockerID"`
+	SensorID int32 `json:"sensorID"`
+}
+
+func (q *Queries) CreateSensorLocker(ctx context.Context, arg CreateSensorLockerParams) (sql.Result, error) {
+	return q.exec(ctx, q.createSensorLockerStmt, createSensorLocker, arg.LockerID, arg.SensorID)
+}
 
 const getSensorsOfLocker = `-- name: GetSensorsOfLocker :many
 SELECT sensor_id FROM locker_sensor WHERE locker_id = ?
